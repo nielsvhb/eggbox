@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Eggbox.Models;
+﻿using Eggbox.Models;
 using OscCore;
 
 namespace Eggbox.Services;
@@ -25,24 +22,6 @@ public class Mixer
         _traffic = traffic;
 
         _io.MessageSent += OnSent;
-        _io.MessageReceived += OnReceived;
-    }
-    
-    public ChannelControl Channel(int index) => new(this, _io, index);
-    public BusControl Bus(int index) => new(this, _io, index);
-    public FxControl Fx(int index) => new(this, _io, index);
-    public MainControl Main() => new(this, _io);
-    
-    public abstract class MixerControlBase
-    {
-        protected readonly Mixer Mixer;
-        protected readonly MixerIO IO;
-
-        protected MixerControlBase(Mixer mixer, MixerIO io)
-        {
-            Mixer = mixer;
-            IO = io;
-        }
     }
 
     private void OnSent(OscMessage msg, DateTime t)
@@ -50,13 +29,24 @@ public class Mixer
         _traffic.AddTx(msg);
     }
 
-    private void OnReceived(OscMessage msg, DateTime rxTime)
+    public async Task ConnectAsync(MixerInfo info)
     {
-        var handled = _parser.ApplyOscMessage(msg, out var parseStart, out var parseEnd);
-        _traffic.AddRx(msg, handled, rxTime, parseStart, parseEnd);
+        if (info.IpAddress is null)
+            throw new ArgumentException("MixerInfo.IpAddress cannot be null");
+
+        await _io.ConnectAsync(info.IpAddress);
+
+        _model.IsConnected = true;
+        _model.IpAddress = info.IpAddress;
+
+        Configure(info.MixerType);
+
+        await InitAsync();
     }
+
+    public MixerModel State => _model;
     
-    private void Configure(string mixerType)
+    public Mixer Configure(string mixerType)
     {
         _model.Info.MixerType = mixerType.ToLowerInvariant();
 
@@ -80,22 +70,11 @@ public class Mixer
         _model.Busses = Enumerable.Range(1, _model.Info.BusCount)
             .Select(i => new Bus { Index = i, Name = $"BUS{i:00}" })
             .ToList();
+
+        return this;
     }
     
-    public async Task ConnectAsync(MixerInfo info)
-    {
-        await _io.ConnectAsync(info.IpAddress!);
-
-        Configure(info.MixerType);
-
-        _model.IsConnected = true;
-        _model.IpAddress = info.IpAddress;
-
-        await InitAsync();
-    }
-
-
-    private async Task InitAsync()
+    public async Task InitAsync()
     {
         var chCount = _model.Info.ChannelCount;
         var busCount = _model.Info.BusCount;
@@ -108,126 +87,230 @@ public class Mixer
         for (int bus = 1; bus <= busCount; bus++)
             tasks.Add(Bus(bus).RequestRefreshAsync());
 
-        tasks.Add(Main().RequestRefreshAsync());
-
         tasks.Add(Fx(1).RequestRefreshAsync());
         tasks.Add(Fx(2).RequestRefreshAsync());
+        tasks.Add(Main().RequestRefreshAsync());
 
         await Task.WhenAll(tasks);
     }
 
     internal Task SendAsync(OscMessage msg) => _io.SendAsync(msg);
+
+
+    public ChannelControl Channel(int index) => new(_io, _model, index);
+    public BusControl Bus(int index) => new(_io, _model, index);
+    public FxControl Fx(int index) => new(this, _model, index);
+    public MainControl Main() => new(_io, _model);
+
+    public async Task ReloadChannels()
+    {
+        for (int i = 1; i <= _model.Info.ChannelCount; i++)
+        {
+            await Channel(i).RequestRefreshAsync();
+        }
+    }
+}
+
+public class ChannelControl
+{
+    private readonly MixerIO _io;
+    private readonly MixerModel _model;
+    private readonly int _index;
+
+    public ChannelControl(MixerIO io, MixerModel model, int index)
+    {
+        _io = io;
+        _model = model;
+        _index = index;
+    }
+
+    private Channel ChannelModel
+        => _model.Channels.First(c => c.Index == _index);
+
+    public int Index => _index;
+
+    public string Name => ChannelModel.Name;
+    public float Fader => ChannelModel.Fader;
+    public bool Mute => ChannelModel.Mute;
+    public float Gain => ChannelModel.Gain;
+    public MixerColor Color => ChannelModel.Color;
+    public IReadOnlyDictionary<int, ChannelSend> Sends => ChannelModel.Sends;
+
+    public Task SetFader(float value)
+        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/fader", value));
+
+    public Task SetMute(bool muted)
+        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/on", muted ? 0 : 1));
+
+    public Task SetGain(float gain)
+        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/preamp/gain", gain));
     
-    public class ChannelControl : MixerControlBase
+    public Task SetSendLevel(int busIndex, float value)
+        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/{busIndex:D2}/level", value));
+    
+    public Task SetSendMute(int busIndex, bool mute)
+        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/{busIndex:D2}/on", mute ? 0 : 1));
+    
+    public Task SetColor(MixerColor color)
+        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/config/color", color.MappedValue));
+    
+    public Task RequestRefreshAsync()
     {
-        private readonly int _index;
-        public ChannelControl(Mixer mixer, MixerIO io, int index) : base(mixer, io)
-        {
-            _index = index;
-        }
+        return Task.WhenAll(
+            _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/fader")),
+            _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/on")),
+            _io.SendAsync(new OscMessage($"/ch/{_index:D2}/preamp/gain")),
+            _io.SendAsync(new OscMessage($"/ch/{_index:D2}/config/color"))
+        );
+    }
+}
 
-        public Task SetFader(float value)
-            => IO.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/fader", value));
+public class BusControl
+{
+    private readonly MixerIO _io;
+    private readonly MixerModel _model;
+    private readonly int _bus;
 
-        public Task SetMute(bool muted)
-            => IO.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/on", muted ? 0 : 1));
-        
-        public Task SetColor(MixerColor color)
-            => IO.SendAsync(new OscMessage($"/ch/{_index:D2}/config/color", color.MappedValue));
-        
-        public Task RequestRefreshAsync()
+    public BusControl(MixerIO io, MixerModel model, int busIndex)
+    {
+        _io = io;
+        _model = model;
+        _bus = busIndex;
+    }
+
+    private Bus BusModel
+        => _model.Busses.First(b => b.Index == _bus);
+
+    public int Index => _bus;
+    public string Name => BusModel.Name;
+    public float Fader => BusModel.Fader;
+    public bool Mute => BusModel.Mute;
+    public MixerColor Color => BusModel.Color;
+
+    public Task SetFader(float value)
+        => _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/fader", value));
+
+    public Task SetMute(bool mute)
+        => _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/on", mute ? 0 : 1));
+
+    public Task SetName(string name)
+        => _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/name", name));
+
+    public Task SetColor(MixerColor color)
+        => _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/color", color.MappedValue));
+    
+    public Task RequestRefreshAsync()
+    {
+        return Task.WhenAll(
+            _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/fader")),
+            _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/on")),
+            _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/name")),
+            _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/color"))
+        );
+    }
+
+    public ChannelSendControl Channel(int ch)
+        => new (_io, _model, ch, _bus);
+}
+
+public class ChannelSendControl
+{
+    private readonly MixerIO _io;
+    private readonly MixerModel _model;
+    private readonly int _ch;
+    private readonly int _bus;
+
+    public ChannelSendControl(MixerIO io, MixerModel model, int ch, int bus)
+    {
+        _io = io;
+        _model = model;
+        _ch = ch;
+        _bus = bus;
+    }
+
+    private ChannelSend? SendModel
+    {
+        get
         {
-            return Task.WhenAll(
-                IO.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/fader")),
-                IO.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/on")),
-                IO.SendAsync(new OscMessage($"/ch/{_index:D2}/preamp/gain")),
-                IO.SendAsync(new OscMessage($"/ch/{_index:D2}/config/color"))
-            );
+            var ch = _model.Channels.FirstOrDefault(c => c.Index == _ch);
+            if (ch == null) return null;
+            return ch.Sends.TryGetValue(_bus, out var s) ? s : null;
         }
+    }
+
+    public float Level => SendModel?.Level ?? 0f;
+    public bool Mute => SendModel?.Mute ?? false;
+
+    public Task SetFader(float value)
+        => _io.SendAsync(new OscMessage($"/ch/{_ch:D2}/mix/{_bus:D2}/level", value));
+
+    public Task SetMute(bool mute)
+        => _io.SendAsync(new OscMessage($"/ch/{_ch:D2}/mix/{_bus:D2}/on", mute ? 0 : 1));
+}
+
+public class MainControl
+{
+    private readonly MixerIO _io;
+    private readonly MixerModel _model;
+
+    public MainControl(MixerIO io, MixerModel model)
+    {
+        _io = io;
+        _model = model;
+    }
+
+    public float Fader => _model.Main.Fader;
+    public bool Mute => _model.Main.Mute;
+
+    public Task SetFader(float value)
+        => _io.SendAsync(new OscMessage("/lr/mix/fader", value));
+
+    public Task SetMute(bool mute)
+        => _io.SendAsync(new OscMessage("/lr/mix/on", mute ? 0 : 1));
+    
+    public Task RequestRefreshAsync()
+    {
+        return Task.WhenAll(
+            _io.SendAsync(new OscMessage("/lr/mix/fader")),
+            _io.SendAsync(new OscMessage("/lr/mix/on"))
+        );
     }
     
-    public class BusControl : MixerControlBase
+    public ChannelControl Channel(int index)
+        => new ChannelControl(_io, _model, index);
+}
+
+public class FxControl
+{
+    private readonly Mixer _mixer;
+    private readonly MixerModel _model;
+    private readonly int _index;
+
+    public FxControl(Mixer mixer, MixerModel model, int index)
     {
-        private readonly int _bus;
-        public BusControl(Mixer mixer, MixerIO io, int busIndex) : base(mixer, io)
-        {
-            _bus = busIndex;
-        }
-
-        public Task SetFader(float value)
-            => IO.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/fader", value));
-
-        public Task RequestRefreshAsync()
-        {
-            return Task.WhenAll(
-                IO.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/fader")),
-                IO.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/on")),
-                IO.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/name")),
-                IO.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/color"))
-            );
-        }
-
-        public ChannelSendControl Channel(int ch) => new(Mixer, IO, ch, _bus);
+        _mixer = mixer;
+        _model = model;
+        _index = index;
     }
 
-    public class ChannelSendControl : MixerControlBase
+    private FxReturn FxModel
+        => _index == 1 ? _model.Fx1 : _model.Fx2;
+
+    public float Fader => FxModel.Fader;
+    public bool Mute => FxModel.Mute;
+    public string Name => FxModel.Name;
+
+    public Task SetReturnFader(float value)
+        => _mixer.SendAsync(new OscMessage($"/fxr/{_index}/mix/fader", value));
+
+    public Task SetMute(bool mute)
+        => _mixer.SendAsync(new OscMessage($"/fxr/{_index}/mix/on", mute ? 0 : 1));
+
+    public Task RequestRefreshAsync()
     {
-        private readonly int _ch;
-        private readonly int _bus;
-
-        public ChannelSendControl(Mixer mixer, MixerIO io, int ch, int bus) : base(mixer, io)
-        {
-            _ch = ch;
-            _bus = bus;
-        }
-
-        public Task SetFader(float value)
-            => IO.SendAsync(new OscMessage($"/ch/{_ch:D2}/mix/{_bus:D2}/level", value));
-
-        public Task SetMute(bool mute)
-            => IO.SendAsync(new OscMessage($"/ch/{_ch:D2}/mix/{_bus:D2}/on", mute ? 0 : 1));
-    }
-
-    public class MainControl : MixerControlBase
-    {
-        public MainControl(Mixer mixer, MixerIO io) : base(mixer, io) {}
-
-        public Task SetFader(float value)
-            => IO.SendAsync(new OscMessage("/lr/mix/fader", value));
-
-        public Task RequestRefreshAsync()
-        {
-            return Task.WhenAll(
-                IO.SendAsync(new OscMessage("/lr/mix/fader")),
-                IO.SendAsync(new OscMessage("/lr/mix/on"))
-            );
-        }
-
-        public ChannelControl Channel(int index)
-            => new ChannelControl(Mixer, IO, index);
-    }
-
-    public class FxControl : MixerControlBase
-    {
-        private readonly int _index;
-
-        public FxControl(Mixer mixer, MixerIO io, int index) : base(mixer, io)
-        {
-            _index = index;
-        }
-
-        public Task SetReturnFader(float value)
-            => IO.SendAsync(new OscMessage($"/fxr/{_index}/mix/fader", value));
-
-        public Task SetMute(bool mute)
-            => IO.SendAsync(new OscMessage($"/fxr/{_index}/mix/on", mute ? 0 : 1));
-
-        public Task RequestRefreshAsync()
-        {
-            return Task.WhenAll(
-                IO.SendAsync(new OscMessage($"/fxr/{_index}/mix/fader")),
-                IO.SendAsync(new OscMessage($"/fxr/{_index}/mix/on"))
-            );
-        }
+        return Task.WhenAll(
+            _mixer.SendAsync(new OscMessage($"/fxr/{_index}/mix/fader")),
+            _mixer.SendAsync(new OscMessage($"/fxr/{_index}/mix/on"))
+        );
     }
 }

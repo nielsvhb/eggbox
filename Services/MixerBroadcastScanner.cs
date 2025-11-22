@@ -80,25 +80,17 @@ public class MixerBroadcastScanner
             MixerType = "xr16", // default fallback
         };
 
-        // /xinfo string is zoals:
-        // "X-Air XR16 1.15 16 4"
-        // of soms in varianten
-
         var parts = response
             .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        // Safety check
         if (parts.Length < 2)
             return info;
-
-        // example:
-        // X-Air XR16 1.15 16 4
 
         if (parts.Length >= 2)
             info.Name = parts[0] + " " + parts[1];
 
         if (parts.Length >= 3)
-            info.MixerType = parts[1]; // bij XR16/18 meestal in part[1]
+            info.MixerType = parts[1];
 
         if (parts.Length >= 4)
             info.FirmwareVersion = parts[2];

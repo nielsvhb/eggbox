@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Eggbox.Models;
+﻿namespace Eggbox.Models;
 
 public class MixerModel
 {
@@ -26,8 +23,7 @@ public class MixerInfo
     public string? FirmwareVersion { get; set; }
     public int ChannelCount { get; set; }
     public int BusCount { get; set; }
-
-    public string? IpAddress { get; set; } // handig voor storage / reconnect
+    public string? IpAddress { get; set; } 
 }
 
 public class Channel
@@ -36,14 +32,8 @@ public class Channel
     public string Name { get; set; } = "";
     public float Fader { get; set; }
     public bool Mute { get; set; }
-
-    // NEW → for your Dashboard and Layout page
     public float Gain { get; set; }
-
-    // New color support
     public MixerColor Color { get; set; } = MixerColor.Red;
-
-    // Sends per bus
     public Dictionary<int, ChannelSend> Sends { get; set; } = new();
 }
 
@@ -77,16 +67,4 @@ public class MainBus
     public float Fader { get; set; }
     public bool Mute { get; set; }
     public float[] Meters { get; set; } = Array.Empty<float>();
-}
-
-public class ChannelDynamics
-{
-    public bool Enabled { get; set; }
-    public float Threshold { get; set; }
-    public float Ratio { get; set; }
-}
-
-public class ChannelEQ
-{
-    public bool Enabled { get; set; }
 }

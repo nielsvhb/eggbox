@@ -1,11 +1,35 @@
 ﻿@inherits LayoutComponentBase
+@using Eggbox.Services
+@inject Mixer Mixer
 
-<div class="h-screen container">
-    <main>
+<div class="h-screen flex flex-col">
+    <div class="flex-1 overflow-auto">
         @Body
-    </main>
-</div>
+    </div>
 
-@code {
-   
-}
+    @if (Mixer.State.IsConnected)
+    {
+        <nav class="h-16 bg-white border-t shadow-lg flex justify-around items-center text-gray-700">
+
+            <NavLink href="@Routes.Layout" 
+                     class="flex flex-col items-center gap-1 px-4 py-2"
+                     Match="NavLinkMatch.All">
+                <i class="fas fa-sliders-h text-xl"></i>
+                <span class="text-xs">Layout</span>
+            </NavLink>
+
+            <NavLink href="@Routes.Dashboard" 
+                     class="flex flex-col items-center gap-1 px-4 py-2">
+                <i class="fas fa-chart-bar text-xl"></i>
+                <span class="text-xs">Dashboard</span>
+            </NavLink>
+
+            <NavLink href="@Routes.OscMonitor" 
+                     class="flex flex-col items-center gap-1 px-4 py-2">
+                <i class="fas fa-terminal text-xl"></i>
+                <span class="text-xs">OSC</span>
+            </NavLink>
+
+        </nav>
+    }
+</div>

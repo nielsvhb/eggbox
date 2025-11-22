@@ -1,13 +1,7 @@
 ﻿@using Eggbox.Models
 @using Eggbox.Services
 
-@inject MixerIO IO
-@inject Mixer Mixer
-@inject NavigationManager Nav
-
-<div class="relative p-3 rounded-2xl overflow-hidden bg-white/30 backdrop-blur-sm border border-gray-100/60
-            transition-transform duration-200 ease-in-out
-            @(isAnimating ? "scale-95 opacity-70" : "scale-100 opacity-100")"
+<div class="relative p-3 rounded-2xl overflow-hidden bg-white/30 backdrop-blur-sm border border-gray-100/60transition-transform duration-200 ease-in-out @(isAnimating ? "scale-95 opacity-70" : "scale-100 opacity-100")"
      @onclick="SelectAsync">
 
     <div class="transition-opacity duration-300 flex gap-10 items-center w-full">
@@ -37,7 +31,6 @@
         StateHasChanged();
 
         await Task.Delay(200);
-
         await OnSelected.InvokeAsync(MixerInfo);
 
         isAnimating = false;

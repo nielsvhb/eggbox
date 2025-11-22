@@ -1,9 +1,5 @@
-﻿// Services/MixerIO.cs
-using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OscCore;
 
@@ -24,7 +20,7 @@ public sealed class MixerIO : IDisposable
 
     public int LocalPort { get; private set; }
 
-    private const int DefaultLocalPort = 10025; // zoals je oude GetFreePort()
+    private const int DefaultLocalPort = 10025;
 
     public MixerIO(ILogger<MixerIO> logger, MixerParser parser, MixerTrafficLogService traffic)
     {
@@ -35,7 +31,6 @@ public sealed class MixerIO : IDisposable
 
     public async Task ConnectAsync(string hostName, int port = 10024, int? localPort = null)
     {
-        // als er al een client bestond, eerst netjes opruimen
         await DisconnectAsync();
 
         LocalPort = localPort ?? DefaultLocalPort;
@@ -47,7 +42,6 @@ public sealed class MixerIO : IDisposable
         _cts = new CancellationTokenSource();
         _ = StartReceivingAsync(_cts.Token);
 
-        // init /xremote + /xinfo + keepalive zoals je UdpOscClient
         _ = SendAsync(new OscMessage("/xremote"));
         _ = SendAsync(new OscMessage("/xinfo"));
 

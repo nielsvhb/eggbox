@@ -6,27 +6,20 @@
 @inject NavigationManager Nav
 
 <section class="h-full flex flex-col">
-
-    <!-- ZONE 1: VISUAL MIXER LAYOUT -->
     <div class="p-4 flex flex-col items-center">
         <h2 class="text-xl font-semibold mb-4 text-gray-700">XR16 Layout</h2>
-
         <div class="relative p-4 border border-gray-400 rounded-xl">
-
-            <!-- INPUTS 1–16 -->
             <div class="grid grid-cols-8 gap-4">
-                @for (int ch = 1; ch <= 16; ch++)
-                {
-                    <div class="w-10 h-10 rounded-full border border-gray-500
-                                flex items-center justify-center
-                                cursor-pointer hover:bg-gray-200 transition"
-                         @onclick="() => SelectInput(ch)">
-                        @ch
+                @foreach(var channel in Model.Channels) {
+                    <div class="w-10 h-10 rounded-full border flex items-center justify-center
+                                cursor-pointer hover:scale-110 transition"
+                         style="background-color:@channel.Color.HexCode; border-color:@channel.Color.HexCode"
+                         @onclick="() => SelectInput(channel)">
+                        @channel.Index
                     </div>
                 }
             </div>
 
-            <!-- OUTPUTS (4 Monitor Busses + Main L/R) -->
             <div class="flex gap-4 mt-6 justify-center">
                 @foreach (var bus in Outputs)
                 {
@@ -38,25 +31,21 @@
                     </div>
                 }
             </div>
-
         </div>
     </div>
 
 
-    <!-- ZONE 2: SELECTED SOCKET PANEL -->
     <div class="border-t border-gray-300 p-6 bg-white shadow-inner">
         @if (SelectedInput != null)
         {
             <h3 class="text-lg font-bold mb-3">Input CH@SelectedInput.Index</h3>
 
-            <!-- Name -->
             <div class="mb-4">
                 <label class="block text-sm text-gray-600">Name</label>
                 <input class="w-full border border-gray-300 p-2 rounded"
                        @bind="SelectedInput.Name" placeholder="Instrument name..." />
             </div>
 
-            <!-- Color Picker -->
             <div class="mb-4">
                 <label class="block text-sm text-gray-600">Assigned Output Color</label>
                 <div class="flex gap-4 mt-2">
@@ -70,7 +59,6 @@
                 </div>
             </div>
 
-            <!-- Gain Button -->
             <button class="btn btn-secondary mt-4"
                     @onclick="OpenGainModal">
                 Adjust Gain
@@ -81,20 +69,12 @@
         {
             <h3 class="text-lg font-bold mb-3">Output: @SelectedOutput.ShortLabel</h3>
 
-            <!-- Name -->
             <div class="mb-4">
                 <label class="block text-sm text-gray-600">Name</label>
                 <input class="w-full border border-gray-300 p-2 rounded"
                        @bind="SelectedOutput.Name" placeholder="Person name..." />
             </div>
         }
-    </div>
-
-
-    <!-- ZONE 3: FOOTER / WIZARD BUTTONS -->
-    <div class="p-4 flex justify-between border-t bg-gray-50">
-        <button class="btn" @onclick="Back">Back</button>
-        <button class="btn btn-primary" @onclick="GoToDashboard">Go to Dashboard →</button>
     </div>
 
 </section>
@@ -123,13 +103,13 @@
         (12, "R", MixerColor.Magenta)  // main R
     };
 
-    void SelectInput(int ch)
+    void SelectInput(Channel channel)
     {
         SelectedOutput = null;
         SelectedInput = new SocketInfo
         {
-            Index = ch,
-            Name = Model.Channels.FirstOrDefault(c => c.Index == ch)?.Name ?? ""
+            Index = channel.Index,
+            Name = channel.Name ?? ""
         };
     }
 
@@ -158,13 +138,14 @@
         StateHasChanged();
     }
 
-    void Back() => Nav.NavigateTo("/home");
-
-    void GoToDashboard() => Nav.NavigateTo("/dashboard");
-
     void OpenGainModal()
     {
         // modal logica hier
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Model.StateChanged += key => InvokeAsync(StateHasChanged);
     }
 
     public class SocketInfo

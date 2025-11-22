@@ -40,11 +40,6 @@
                 }
             </select>
         </div>
-
-        <div class="flex items-center gap-2">
-            <button class="btn btn-sm" @onclick="Reload">↻ Reload</button>
-            <NavLink href="@Routes.OscMonitor" class="btn btn-primary btn-sm">OSC Monitor</NavLink>
-        </div>
     </div>
 
     @if (_loading)
@@ -53,10 +48,10 @@
     }
     else if (_channels.Any())
     {
-        <div class="grid gap-3 grid-cols-4 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 mt-3">
+        <div class="grid gap-3 grid-cols-12 mt-3">
             @foreach (var ch in _channels)
             {
-                <div class="rounded-lg border p-3 text-center bg-white/60 backdrop-blur fader-card">
+                <div class="rounded-lg border p-2 text-center bg-white/60 backdrop-blur fader-card">
                     <div class="flex justify-between items-center mb-2">
                         <span class="font-semibold text-sm">@ch.Name</span>
 
@@ -132,12 +127,7 @@
         _loading = true;
         StateHasChanged();
 
-        // Request fresh values from mixer
-        for (int i = 1; i <= Model.Info.ChannelCount; i++)
-        {
-            // The parser will update Model.State
-            await Mixer.Channel(i).RequestRefreshAsync();
-        }
+        await Mixer.ReloadChannels();
 
         _loading = false;
         BuildVM();
