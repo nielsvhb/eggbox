@@ -1,4 +1,5 @@
 ﻿using Eggbox.Models;
+using Optional;
 using OscCore;
 
 namespace Eggbox.Services;
@@ -133,7 +134,7 @@ public class ChannelControl
     public float Fader => ChannelModel.Fader;
     public bool Mute => ChannelModel.Mute;
     public float Gain => ChannelModel.Gain;
-    public MixerColor Color => ChannelModel.Color;
+    public Option<MixerColor> Color => ChannelModel.Color;
     public IReadOnlyDictionary<int, ChannelSend> Sends => ChannelModel.Sends;
 
     public Task SetFader(float value)

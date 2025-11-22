@@ -6,30 +6,35 @@
 @inject NavigationManager Nav
 
 <section class="h-full flex flex-col">
-    <div class="p-4 flex flex-col items-center">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700">XR16 Layout</h2>
-        <div class="relative p-4 border border-gray-400 rounded-xl">
-            <div class="grid grid-cols-8 gap-4">
+    <div class="p-3 flex flex-col items-center">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">Choose inputs/outputs</h2>
+        <div class="relative p-3 border border-gray-300 rounded-xl bg-gray-100">
+            <div class="grid grid-cols-8 gap-2">
                 @foreach(var channel in Model.Channels) {
-                    <div class="w-10 h-10 rounded-full border flex items-center justify-center
+                    <div class="w-9 h-9 rounded-full border flex items-center justify-center
                                 cursor-pointer hover:scale-110 transition"
-                         style="background-color:@channel.Color.HexCode; border-color:@channel.Color.HexCode"
+                         style="background-color:@(channel.Color.Match(
+                             some: c => c.HexCode,
+                             none: () => "transparent"
+                         ))"
                          @onclick="() => SelectInput(channel)">
                         @channel.Index
                     </div>
                 }
             </div>
 
-            <div class="flex gap-4 mt-6 justify-center">
+            <div class="flex gap-1 mt-4 justify-center">
                 @foreach (var bus in Outputs)
                 {
-                    <div class="w-10 h-10 rounded-full border border-gray-500 flex items-center justify-center cursor-pointer
+                    <div class="w-9 h-9 rounded-full rounded-tl border border-gray-500 flex items-center justify-center cursor-pointer
                                 hover:bg-gray-200 transition"
                          style="background-color:@bus.Color.HexCode"
                          @onclick="() => SelectOutput(bus.Index)">
                         @bus.Short
                     </div>
                 }
+                <div class="w-9 h-9 rounded-full bg-gray-400"></div> 
+                <div class="w-9 h-9 rounded-full bg-gray-400"></div> 
             </div>
         </div>
     </div>
@@ -100,7 +105,7 @@
         (3, "B3", MixerColor.Yellow),
         (4, "B4", MixerColor.Blue),
         (11, "L", MixerColor.Magenta), // main L
-        (12, "R", MixerColor.Magenta)  // main R
+        (12, "R", MixerColor.White)  // main R
     };
 
     void SelectInput(Channel channel)

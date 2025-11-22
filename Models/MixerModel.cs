@@ -1,4 +1,6 @@
-﻿namespace Eggbox.Models;
+﻿using Optional;
+
+namespace Eggbox.Models;
 
 public class MixerModel
 {
@@ -33,8 +35,19 @@ public class Channel
     public float Fader { get; set; }
     public bool Mute { get; set; }
     public float Gain { get; set; }
-    public MixerColor Color { get; set; } = MixerColor.Red;
+    public Option<MixerColor> Color { get; set; }
     public Dictionary<int, ChannelSend> Sends { get; set; } = new();
+    
+    public ChannelSend GetOrCreateSend(int bus)
+    {
+        if (!Sends.TryGetValue(bus, out var send))
+        {
+            send = new ChannelSend();
+            Sends[bus] = send;
+        }
+
+        return send;
+    }
 }
 
 public class ChannelSend

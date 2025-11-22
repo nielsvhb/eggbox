@@ -1,6 +1,7 @@
 ﻿@attribute [Route(Routes.Dashboard)]
 @using Eggbox.Services
 @using Eggbox.Models
+@using Optional
 
 @inject Mixer Mixer
 @inject MixerModel Model
@@ -70,7 +71,7 @@
                     <div class="text-xs mt-1 text-center">@((int)(ch.Fader * 100))%</div>
 
                     <div class="w-full h-1.5 mt-2 rounded-full"
-                         style="background:@ch.Color.HexCode"></div>
+                         style="background:@ch.Color.Map(c => c.HexCode)"></div>
                 </div>
             }
         </div>
@@ -160,6 +161,6 @@
         public string Name { get; set; } = "";
         public float Fader { get; set; }
         public bool Muted { get; set; }
-        public MixerColor Color { get; set; } = MixerColor.Red;
+        public Option<MixerColor> Color { get; set; }
     }
 }

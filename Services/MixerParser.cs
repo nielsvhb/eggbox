@@ -1,4 +1,5 @@
 ﻿using Eggbox.Models;
+using Eggbox.Osc;
 using OscCore;
 
 namespace Eggbox.Services;
@@ -15,122 +16,67 @@ public class MixerParser
     public bool ApplyOscMessage(OscMessage msg, out DateTime parseStart, out DateTime parseEnd)
     {
         parseStart = DateTime.UtcNow;
-        bool handled = false;
+        var addr = msg.Address;
+        var args = msg.Select(a => (object)a).ToArray();
 
-        string addr = msg.Address;
-
-        if (addr.StartsWith("/ch/"))
-        {
-            handled = HandleChannel(addr, msg);
-        }
-        else if (addr.StartsWith("/bus/"))
-        {
-            handled = HandleBus(addr, msg);
-        }
-        else if (addr.StartsWith("/fxr/"))
-        {
-            handled = HandleFx(addr, msg);
-        }
-        else if (addr.StartsWith("/main/"))
-        {
-            handled = HandleMain(addr, msg);
-        }
+        bool handled =
+            HandleChannel(addr, args)
+            || HandleBus(addr, args)
+            || HandleFx(addr, args)
+            || HandleMain(addr, args);
 
         parseEnd = DateTime.UtcNow;
         return handled;
     }
 
-    private static object[] GetArgs(OscMessage msg)
-        => msg.Select(a => (object)a).ToArray();
-
-    private bool HandleChannel(string addr, OscMessage msg)
+    // ----------------------------
+    // CHANNEL
+    // ----------------------------
+    private bool HandleChannel(string addr, object[] args)
     {
-        var parts = addr.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 3) return false;
-        if (!int.TryParse(parts[1], out int chIndex)) return false;
-
-        var ch = _model.Channels.FirstOrDefault(c => c.Index == chIndex);
-        if (ch == null) return false;
-
-        var args = GetArgs(msg);
-        if (args.Length == 0) return false;
-
-        // /ch/01/mix/fader
-        if (parts.Length >= 4 && parts[2] == "mix" && parts[3] == "fader")
+        if (OscAddress.Channel.Fader.Match(addr, out int ch))
         {
-            ch.Fader = Convert.ToSingle(args[0]);
+            _model.Channels[ch - 1].Fader = Convert.ToSingle(args[0]);
             _model.RaiseStateChanged(addr);
             return true;
         }
 
-        // /ch/01/mix/on  (mute)
-        if (parts.Length >= 5 && parts[2] == "mix" &&
-            int.TryParse(parts[3], out var busIndex2) &&
-            parts[4] == "on")
+        if (OscAddress.Channel.Mute.Match(addr, out ch))
         {
-            if (!ch.Sends.TryGetValue(busIndex2, out var send))
-            {
-                send = new ChannelSend();
-                ch.Sends[busIndex2] = send;
-            }
-
-            send.Mute = Convert.ToInt32(args[0]) == 0;
-
+            _model.Channels[ch - 1].Mute = Convert.ToInt32(args[0]) == 0;
             _model.RaiseStateChanged(addr);
             return true;
         }
 
-        // /ch/01/preamp/gain
-        if (parts.Length >= 4 && parts[2] == "preamp" && parts[3] == "gain")
+        if (OscAddress.Channel.Gain.Match(addr, out ch))
         {
-            ch.Gain = Convert.ToSingle(args[0]);
+            _model.Channels[ch - 1].Gain = Convert.ToSingle(args[0]);
             _model.RaiseStateChanged(addr);
             return true;
         }
 
-        // /ch/01/mix/01/level (bus send)
-        if (parts.Length >= 5 && parts[2] == "mix" && 
-            int.TryParse(parts[3], out var busIndex) &&
-            parts[4] == "level")
+        if (OscAddress.Channel.Color.Match(addr, out ch))
         {
-            if (!ch.Sends.TryGetValue(busIndex, out var send))
-            {
-                send = new ChannelSend();
-                ch.Sends[busIndex] = send;
-            }
+            var colorId = Convert.ToInt32(args[0]);
+            _model.Channels[ch - 1].Color = MixerColor.FromMappedValue(colorId);
+            _model.RaiseStateChanged(addr);
+            return true;
+        }
 
+        if (OscAddress.Channel.SendLevel.Match(addr, out ch, out int bus))
+        {
+            var send = _model.Channels[ch - 1].GetOrCreateSend(bus);
             send.Level = Convert.ToSingle(args[0]);
 
             _model.RaiseStateChanged(addr);
             return true;
         }
 
-        return false;
-    }
-
-    private bool HandleBus(string addr, OscMessage msg)
-    {
-        var parts = addr.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 3) return false;
-        if (!int.TryParse(parts[1], out int busIndex)) return false;
-
-        var bus = _model.Busses.FirstOrDefault(b => b.Index == busIndex);
-        if (bus == null) return false;
-
-        var args = GetArgs(msg);
-        if (args.Length == 0) return false;
-
-        if (parts.Length >= 4 && parts[2] == "mix" && parts[3] == "fader")
+        if (OscAddress.Channel.SendMute.Match(addr, out ch, out bus))
         {
-            bus.Fader = Convert.ToSingle(args[0]);
-            _model.RaiseStateChanged(addr);
-            return true;
-        }
+            var send = _model.Channels[ch - 1].GetOrCreateSend(bus);
+            send.Mute = Convert.ToInt32(args[0]) == 0;
 
-        if (parts.Length >= 4 && parts[2] == "mix" && parts[3] == "on")
-        {
-            var val = Convert.ToInt32(args[0]);
-            bus.Mute = val == 0;
             _model.RaiseStateChanged(addr);
             return true;
         }
@@ -138,28 +84,41 @@ public class MixerParser
         return false;
     }
 
-    private bool HandleFx(string addr, OscMessage msg)
+    // ----------------------------
+    // BUS
+    // ----------------------------
+    private bool HandleBus(string addr, object[] args)
     {
-        // /fxr/1/mix/fader
-        var parts = addr.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 3) return false;
-        if (!int.TryParse(parts[1], out int fxIndex)) return false;
-
-        var fx = fxIndex == 1 ? _model.Fx1 : _model.Fx2;
-        var args = GetArgs(msg);
-        if (args.Length == 0) return false;
-
-        if (parts.Length >= 4 && parts[2] == "mix" && parts[3] == "fader")
+        if (OscAddress.Bus.Fader.Match(addr, out int bus))
         {
-            fx.Fader = Convert.ToSingle(args[0]);
+            _model.Busses[bus - 1].Fader = Convert.ToSingle(args[0]);
             _model.RaiseStateChanged(addr);
             return true;
         }
 
-        if (parts.Length >= 4 && parts[2] == "mix" && parts[3] == "on")
+        if (OscAddress.Bus.Mute.Match(addr, out bus))
         {
-            var val = Convert.ToInt32(args[0]);
-            fx.Mute = val == 0;
+            _model.Busses[bus - 1].Mute = Convert.ToInt32(args[0]) == 0;
+            _model.RaiseStateChanged(addr);
+            return true;
+        }
+
+        if (OscAddress.Bus.Color.Match(addr, out bus))
+        {
+            var colorId = Convert.ToInt32(args[0]);
+            var color = MixerColor.FromMappedValue(colorId);
+            color.MatchSome(c =>
+            {
+                _model.Busses[bus - 1].Color = c;
+                _model.RaiseStateChanged(addr); 
+            });
+          
+            return true;
+        }
+
+        if (OscAddress.Bus.Name.Match(addr, out bus))
+        {
+            _model.Busses[bus - 1].Name = Convert.ToString(args[0]) ?? "";
             _model.RaiseStateChanged(addr);
             return true;
         }
@@ -167,22 +126,44 @@ public class MixerParser
         return false;
     }
 
-    private bool HandleMain(string addr, OscMessage msg)
+    // ----------------------------
+    // FX
+    // ----------------------------
+    private bool HandleFx(string addr, object[] args)
     {
-        var args = GetArgs(msg);
-        if (args.Length == 0) return false;
+        // TODO
+        // if (OscAddress.Fx.Fader.Match(addr, out int fx))
+        // {
+        //     (_model.Fx1, _model.Fx2)[fx - 1].Fader = Convert.ToSingle(args[0]);
+        //     _model.RaiseStateChanged(addr);
+        //     return true;
+        // }
+        //
+        // if (OscAddress.Fx.Mute.Match(addr, out fx))
+        // {
+        //     (_model.Fx1, _model.Fx2)[fx - 1].Mute = Convert.ToInt32(args[0]) == 0;
+        //     _model.RaiseStateChanged(addr);
+        //     return true;
+        // }
 
-        if (addr.EndsWith("/mix/fader", StringComparison.Ordinal))
+        return false;
+    }
+
+    // ----------------------------
+    // MAIN LR
+    // ----------------------------
+    private bool HandleMain(string addr, object[] args)
+    {
+        if (addr == OscAddress.Main.Fader)
         {
             _model.Main.Fader = Convert.ToSingle(args[0]);
             _model.RaiseStateChanged(addr);
             return true;
         }
 
-        if (addr.EndsWith("/mix/on", StringComparison.Ordinal))
+        if (addr == OscAddress.Main.Mute)
         {
-            var val = Convert.ToInt32(args[0]);
-            _model.Main.Mute = val == 0;
+            _model.Main.Mute = Convert.ToInt32(args[0]) == 0;
             _model.RaiseStateChanged(addr);
             return true;
         }
