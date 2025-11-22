@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Eggbox.Models;
+﻿namespace Eggbox.Models;
 
 public record MixerTrafficEntry(
     DateTime Timestamp,

@@ -424,6 +424,9 @@
   .border-gray-100\/60 {
     border-color: color-mix(in oklab, oklch(96.8% 0.007 247.896) 60%, transparent);
   }
+  .border-gray-200 {
+    border-color: oklch(92.9% 0.013 255.508);
+  }
   .border-gray-300 {
     border-color: oklch(86.9% 0.022 252.894);
   }
@@ -539,11 +542,17 @@
   .text-gray-200 {
     color: oklch(92.9% 0.013 255.508);
   }
+  .text-gray-500 {
+    color: oklch(55.4% 0.046 257.417);
+  }
   .text-gray-600 {
     color: oklch(44.6% 0.043 257.281);
   }
   .text-gray-700 {
     color: oklch(37.2% 0.044 257.287);
+  }
+  .text-primary {
+    color: #ee3967;
   }
   .text-white {
     color: #fff;

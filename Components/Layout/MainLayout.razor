@@ -9,22 +9,25 @@
 
     @if (Mixer.State.IsConnected)
     {
-        <nav class="h-16 bg-white border-t shadow-lg flex justify-around items-center text-gray-700">
+        <nav class="bg-white border-t border-gray-200 shadow-lg flex justify-around items-center text-gray-500">
 
             <NavLink href="@Routes.Layout" 
                      class="flex flex-col items-center gap-1 px-4 py-2"
+                     ActiveClass="text-primary"
                      Match="NavLinkMatch.All">
                 <i class="fas fa-sliders-h text-xl"></i>
                 <span class="text-xs">Layout</span>
             </NavLink>
 
             <NavLink href="@Routes.Dashboard" 
+                      ActiveClass="text-primary"
                      class="flex flex-col items-center gap-1 px-4 py-2">
                 <i class="fas fa-chart-bar text-xl"></i>
                 <span class="text-xs">Dashboard</span>
             </NavLink>
 
             <NavLink href="@Routes.OscMonitor" 
+                      ActiveClass="text-primary"
                      class="flex flex-col items-center gap-1 px-4 py-2">
                 <i class="fas fa-terminal text-xl"></i>
                 <span class="text-xs">OSC</span>
