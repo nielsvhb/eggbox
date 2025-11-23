@@ -133,8 +133,13 @@ public class ChannelControl
     public Task SetMute(bool muted)
         => _io.SendAsync(new OscMessage(OscAddress.Channel.Mute.Build(_index), muted ? 0 : 1));
 
-    public Task SetGain(float gain)
-        => _io.SendAsync(new OscMessage(OscAddress.Channel.Gain.Build(_index), gain));
+    public Task SetGain(float db)
+    {
+        double linear = GainConverter.DbToLinear(db);
+        return _io.SendAsync(
+            new OscMessage(OscAddress.Channel.Gain.Build(_index), (float)linear)
+        );
+    }
 
     public Task SetColor(Color color)
         => _io.SendAsync(new OscMessage(OscAddress.Channel.Color.Build(_index), color.MappedValue));

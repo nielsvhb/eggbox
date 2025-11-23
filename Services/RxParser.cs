@@ -48,13 +48,18 @@ public class RxParser
             _model.RaiseStateChanged(addr);
             return true;
         }
-
+        
         if (OscAddress.Channel.Gain.Match(addr, out ch))
         {
-            _model.Channels[ch - 1].Gain = Convert.ToSingle(args[0]);
+            var channel = _model.Channels.First(c => c.Index == ch);
+
+            double linear = Convert.ToSingle(args[0]);
+            channel.Gain = (float)GainConverter.LinearToDb(linear);
+
             _model.RaiseStateChanged(addr);
             return true;
         }
+
 
         if (OscAddress.Channel.Color.Match(addr, out ch))
         {

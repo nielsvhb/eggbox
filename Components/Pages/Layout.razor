@@ -228,7 +228,7 @@
 
     async Task OnGainChanged(ChangeEventArgs e)
     {
-        GainValue = Convert.ToSingle(e.Value);
+        GainValue = Convert.ToSingle(e.Value); // dB
         if (SelectedInput != null)
         {
             await Mixer.Channel(SelectedInput.Index).SetGain(GainValue);
