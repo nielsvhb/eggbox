@@ -64,7 +64,7 @@
             <div class="mb-4">
                 <label class="block text-sm text-gray-600">Name</label>
                 <input class="w-full border border-gray-300 p-2 rounded"
-                       @bind="SelectedInput.Name" placeholder="Instrument name..." />
+                       value="@SelectedInput.Name" @oninput="OnInputNameChanged" placeholder="Instrument name..." />
             </div>
 
             <div class="mb-4">
@@ -157,6 +157,7 @@
     private SocketInfo? SelectedOutput;
     private bool ShowGainModal = false;
     private float GainValue = 0;
+    private string NameValue = "";
     
     private List<(int Index, string Short, Color Color)> Outputs => new()
     {
@@ -168,7 +169,7 @@
         (12, "R", Color.White)
     };
 
-    void SelectInput(Channel channel)
+    async Task SelectInput(Channel channel)
     {
         SelectedOutput = null;
         SelectedInput = new SocketInfo
@@ -232,6 +233,18 @@
         {
             await Mixer.Channel(SelectedInput.Index).SetGain(GainValue);
         }
+    }
+    
+    async Task OnInputNameChanged(ChangeEventArgs e)
+    {
+        if (SelectedInput == null)
+            return;
+
+        var newName = e.Value?.ToString() ?? "";
+
+        SelectedInput.Name = newName;
+
+        await Mixer.Channel(SelectedInput.Index).SetName(newName);
     }
 
 
