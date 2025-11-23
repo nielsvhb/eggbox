@@ -4,34 +4,47 @@
 @inject UDPService IO
 @inject TrafficLogger Traffic
 
-<h3 class="text-xl font-semibold mb-4">OSC Monitor</h3>
+<section class="p-6 select-none">
 
-<div class="mb-3 flex gap-2">
-    <input @bind="command" placeholder="/ch/01/mix/fader 0.75"
-           class="input input-bordered w-full" />
+    <h2 class="text-2xl font-bold mb-4 text-gray-700">OSC Monitor</h2>
 
-    <button @onclick="SendCommand" class="btn btn-primary">Send</button>
-</div>
+    <div class="flex gap-2 mb-4">
+        <input @bind="command"
+               placeholder="/ch/01/mix/fader 0.75"
+               class="border border-gray-200 w-full" />
 
-<div style="max-height:400px; overflow-y:auto; font-family:monospace;"
-     class="border p-2 rounded text-sm">
-    @foreach (var entry in Traffic.Log.Reverse().Take(400))
-    {
-        <div>
-            @entry.Timestamp.ToString("HH:mm:ss.fff")
-            @(" ")
-            @(entry.IsTx ? "TX" : "RX")
-            @(" ")
-            @entry.Address
-            @("  ")
-            @string.Join(" ", entry.Arguments.Select(a => a?.ToString()))
-            @("  ")
-            @($"({(entry.Handled ? "handled" : "unhandled")})")
-        </div>
-    }
-</div>
+        <button @onclick="SendCommand" class="btn btn-primary">
+            Send
+        </button>
+    </div>
+
+    <!-- LOG VIEWER -->
+    <div class="border rounded-lg bg-white shadow-inner p-3 text-xs font-mono overflow-y-auto"style="max-height: 480px;">
+
+        @foreach (var entry in Traffic.Log.Reverse())
+        {
+            var color = entry.IsTx
+                ? "#2b90d9"        
+                : (entry.Handled 
+                    ? "#2ecc71"  
+                    : "#e74c3c");  
+
+            var label = entry.IsTx ? "TX" : "RX";
+
+            <div class="flex gap-2 py-0.5 px-0.5 rounded mb-1 whitespace-nowrap flex-nowrap"
+                 style="background-color: @color20(color); color: black;">
+                <span class="opacity-60">@entry.Timestamp.ToString("HH:mm:ss.fff")</span>
+                <span class="font-bold">@label</span>
+                <span>@entry.Address</span>
+                <span class="opacity-70">@FormatArgs(entry.Arguments)</span>
+            </div>
+        }
+    </div>
+
+</section>
 
 @code {
+
     private string command = "";
 
     private async Task SendCommand()
@@ -42,7 +55,6 @@
         var address = parts[0];
         var argStrings = parts.Skip(1).ToArray();
 
-        // Parse string arguments to real OSC types
         object[] oscArgs = argStrings.Select(ParseArgument).ToArray();
 
         var msg = new OscCore.OscMessage(address, oscArgs);
@@ -54,16 +66,20 @@
 
     private object ParseArgument(string raw)
     {
-        // int?
-        if (int.TryParse(raw, out var intVal))
-            return intVal;
+        if (int.TryParse(raw, out var i)) return i;
 
-        // float?
-        if (float.TryParse(raw, System.Globalization.NumberStyles.Any,
-                           System.Globalization.CultureInfo.InvariantCulture, out var floatVal))
-            return floatVal;
+        if (float.TryParse(raw,
+            System.Globalization.NumberStyles.Any,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out var f))
+            return f;
 
-        // else string
         return raw;
     }
+
+    private string FormatArgs(IEnumerable<object?> args)
+        => string.Join(" ", args.Select(a => a?.ToString() ?? ""));
+
+    private string color20(string hex)
+        => hex + "20"; // 20 = ~12% opacity
 }
