@@ -10,12 +10,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Eggbox.Services;
 
-public class MixerBroadcastScanner
+public class BroadcastScanner
 {
-    private readonly ILogger<MixerBroadcastScanner> _logger;
+    private readonly ILogger<BroadcastScanner> _logger;
     private const int Port = 10024;
 
-    public MixerBroadcastScanner(ILogger<MixerBroadcastScanner> logger)
+    public BroadcastScanner(ILogger<BroadcastScanner> logger)
     {
         _logger = logger;
     }

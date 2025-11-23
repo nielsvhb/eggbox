@@ -2,6 +2,7 @@
 @using Eggbox.Services
 @using Eggbox.Models
 @using Optional
+@using Color = Eggbox.Models.Color
 
 @inject Mixer Mixer
 @inject MixerModel Model
@@ -161,6 +162,6 @@
         public string Name { get; set; } = "";
         public float Fader { get; set; }
         public bool Muted { get; set; }
-        public Option<MixerColor> Color { get; set; }
+        public Option<Color> Color { get; set; }
     }
 }

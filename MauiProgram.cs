@@ -23,10 +23,10 @@ public static class MauiProgram
         builder.Services.AddFontAwesomeIcons();
         
         builder.Services.AddSingleton<MixerModel>();
-        builder.Services.AddSingleton<MixerParser>();
-        builder.Services.AddSingleton<MixerIO>();              
-        builder.Services.AddSingleton<MixerTrafficLogService>();
-        builder.Services.AddSingleton<MixerBroadcastScanner>(); 
+        builder.Services.AddSingleton<RxParser>();
+        builder.Services.AddSingleton<UDPService>();              
+        builder.Services.AddSingleton<TrafficLogger>();
+        builder.Services.AddSingleton<BroadcastScanner>(); 
         builder.Services.AddSingleton<Mixer>();
 
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>

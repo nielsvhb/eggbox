@@ -7,15 +7,15 @@ using OscCore;
 
 namespace Eggbox.Services;
 
-public class MixerTrafficLogService
+public class TrafficLogger
 {
-    public ObservableCollection<MixerTrafficEntry> Log { get; } = new();
+    public ObservableCollection<TrafficLogEntry> Log { get; } = new();
 
     public void AddTx(OscMessage msg)
     {
         var args = msg.Select(a => (object)a).ToArray();
 
-        var entry = new MixerTrafficEntry(
+        var entry = new TrafficLogEntry(
             Timestamp: DateTime.UtcNow,
             IsTx: true,
             Address: msg.Address,
@@ -38,7 +38,7 @@ public class MixerTrafficLogService
     {
         var args = msg.Select(a => (object)a).ToArray();
 
-        var entry = new MixerTrafficEntry(
+        var entry = new TrafficLogEntry(
             Timestamp: DateTime.UtcNow,
             IsTx: false,
             Address: msg.Address,
@@ -52,8 +52,8 @@ public class MixerTrafficLogService
         Add(entry);
     }
 
-    private void Add(MixerTrafficEntry entry)
+    private void Add(TrafficLogEntry logEntry)
     {
-        MainThread.BeginInvokeOnMainThread(() => Log.Add(entry));
+        MainThread.BeginInvokeOnMainThread(() => Log.Add(logEntry));
     }
 }

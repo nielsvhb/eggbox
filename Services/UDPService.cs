@@ -5,12 +5,12 @@ using OscCore;
 
 namespace Eggbox.Services;
 
-public sealed class MixerIO : IDisposable
+public sealed class UDPService : IDisposable
 {
-    private readonly ILogger<MixerIO> _logger;
+    private readonly ILogger<UDPService> _logger;
     private UdpClient? _client;
-    private MixerParser _parser;
-    private MixerTrafficLogService _traffic;
+    private RxParser _parser;
+    private TrafficLogger _traffic;
     private CancellationTokenSource? _cts;
     private Timer? _subscriptionTimer;
     private IPEndPoint? _remoteEndPoint;
@@ -22,7 +22,7 @@ public sealed class MixerIO : IDisposable
 
     private const int DefaultLocalPort = 10025;
 
-    public MixerIO(ILogger<MixerIO> logger, MixerParser parser, MixerTrafficLogService traffic)
+    public UDPService(ILogger<UDPService> logger, RxParser parser, TrafficLogger traffic)
     {
         _logger = logger;
         _parser = parser;
@@ -56,7 +56,7 @@ public sealed class MixerIO : IDisposable
     public async Task SendAsync(OscMessage msg)
     {
         if (_client == null || _remoteEndPoint == null)
-            throw new InvalidOperationException("MixerIO is not connected.");
+            throw new InvalidOperationException("UDPService is not connected.");
 
         var packet = (OscPacket)msg;
         var data = packet.ToByteArray();

@@ -35,7 +35,7 @@ public class Channel
     public float Fader { get; set; }
     public bool Mute { get; set; }
     public float Gain { get; set; }
-    public Option<MixerColor> Color { get; set; }
+    public Option<Color> Color { get; set; }
     public Dictionary<int, ChannelSend> Sends { get; set; } = new();
     
     public ChannelSend GetOrCreateSend(int bus)
@@ -64,7 +64,7 @@ public class Bus
     public float Fader { get; set; }
     public bool Mute { get; set; }
     public float[] Meters { get; set; } = Array.Empty<float>();
-    public MixerColor Color { get; set; } = MixerColor.Red;
+    public Color Color { get; set; } = Color.Red;
 }
 
 public class FxReturn

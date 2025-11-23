@@ -2,21 +2,22 @@
 using Eggbox.Osc;
 using Optional;
 using OscCore;
+using Color = Eggbox.Models.Color;
 
 namespace Eggbox.Services;
 
 public class Mixer
 {
     private readonly MixerModel _model;
-    private readonly MixerIO _io;
-    private readonly MixerParser _parser;
-    private readonly MixerTrafficLogService _traffic;
+    private readonly UDPService _io;
+    private readonly RxParser _parser;
+    private readonly TrafficLogger _traffic;
 
     public Mixer(
         MixerModel model,
-        MixerIO io,
-        MixerParser parser,
-        MixerTrafficLogService traffic)
+        UDPService io,
+        RxParser parser,
+        TrafficLogger traffic)
     {
         _model = model;
         _io = io;
@@ -115,11 +116,11 @@ public class Mixer
 
 public class ChannelControl
 {
-    private readonly MixerIO _io;
+    private readonly UDPService _io;
     private readonly MixerModel _model;
     private readonly int _index;
 
-    public ChannelControl(MixerIO io, MixerModel model, int index)
+    public ChannelControl(UDPService io, MixerModel model, int index)
     {
         _io = io;
         _model = model;
@@ -135,8 +136,10 @@ public class ChannelControl
     public Task SetGain(float gain)
         => _io.SendAsync(new OscMessage(OscAddress.Channel.Gain.Build(_index), gain));
 
-    public Task SetColor(MixerColor color)
+    public Task SetColor(Color color)
         => _io.SendAsync(new OscMessage(OscAddress.Channel.Color.Build(_index), color.MappedValue));
+    public Task SetName(string name)
+        => _io.SendAsync(new OscMessage(OscAddress.Channel.Name.Build(_index), name));
 
     public Task SetSendLevel(int bus, float value)
         => _io.SendAsync(new OscMessage(OscAddress.Channel.SendLevel.Build(_index, bus), value));
@@ -149,18 +152,19 @@ public class ChannelControl
             _io.SendAsync(new OscMessage(OscAddress.Channel.Fader.Build(_index))),
             _io.SendAsync(new OscMessage(OscAddress.Channel.Mute.Build(_index))),
             _io.SendAsync(new OscMessage(OscAddress.Channel.Gain.Build(_index))),
-            _io.SendAsync(new OscMessage(OscAddress.Channel.Color.Build(_index)))
+            _io.SendAsync(new OscMessage(OscAddress.Channel.Color.Build(_index))),
+            _io.SendAsync(new OscMessage(OscAddress.Channel.Name.Build(_index)))
         );
 }
 
 
 public class BusControl
 {
-    private readonly MixerIO _io;
+    private readonly UDPService _io;
     private readonly MixerModel _model;
     private readonly int _bus;
 
-    public BusControl(MixerIO io, MixerModel model, int bus)
+    public BusControl(UDPService io, MixerModel model, int bus)
     {
         _io = io;
         _model = model;
@@ -176,7 +180,7 @@ public class BusControl
     public Task SetName(string name)
         => _io.SendAsync(new OscMessage(OscAddress.Bus.Name.Build(_bus), name));
 
-    public Task SetColor(MixerColor color)
+    public Task SetColor(Color color)
         => _io.SendAsync(new OscMessage(OscAddress.Bus.Color.Build(_bus), color.MappedValue));
 
     public Task RequestRefreshAsync()
@@ -193,12 +197,12 @@ public class BusControl
 
 public class ChannelSendControl
 {
-    private readonly MixerIO _io;
+    private readonly UDPService _io;
     private readonly MixerModel _model;
     private readonly int _ch;
     private readonly int _bus;
 
-    public ChannelSendControl(MixerIO io, MixerModel model, int ch, int bus)
+    public ChannelSendControl(UDPService io, MixerModel model, int ch, int bus)
     {
         _io = io;
         _model = model;
@@ -228,10 +232,10 @@ public class ChannelSendControl
 
 public class MainControl
 {
-    private readonly MixerIO _io;
+    private readonly UDPService _io;
     private readonly MixerModel _model;
 
-    public MainControl(MixerIO io, MixerModel model)
+    public MainControl(UDPService io, MixerModel model)
     {
         _io = io;
         _model = model;

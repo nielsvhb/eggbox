@@ -8,6 +8,7 @@ public static class OscAddress
         public static readonly OscPattern Mute      = new("/ch/{0:D2}/mix/on");
         public static readonly OscPattern Gain      = new("/headamp/{0:D2}/gain");
         public static readonly OscPattern Color     = new("/ch/{0:D2}/config/color");
+        public static readonly OscPattern Name     = new("/ch/{0:D2}/config/name");
 
         public static readonly OscPattern SendLevel = new("/ch/{0:D2}/mix/{1:D2}/level");
         public static readonly OscPattern SendMute  = new("/ch/{0:D2}/mix/{1:D2}/on");

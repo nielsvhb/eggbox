@@ -1,6 +1,7 @@
 ﻿@attribute [Route(Routes.Layout)]
 @using Eggbox.Models
 @using Eggbox.Services
+@using Color = Eggbox.Models.Color
 @inject Mixer Mixer
 @inject MixerModel Model
 @inject NavigationManager Nav
@@ -42,7 +43,7 @@
               {
                   var isActive = SelectedOutput?.Index == bus.Index;
               
-                  <div class="w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition
+                  <div class="w-9 h-9 rounded-full rounded-tl-sm border flex items-center justify-center cursor-pointer transition
                               @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")"
                        style="background-color:@bus.Color.HexCode"
                        @onclick="() => SelectOutput(bus.Index)">
@@ -54,31 +55,23 @@
             </div>
         </div>
     </div>
-
-
-
-    <!-- EDIT PANEL -->
     <div class="border-t border-gray-300 p-6 bg-white shadow-inner">
 
-        <!-- INPUT PANEL -->
         @if (SelectedInput != null)
         {
             <h3 class="text-lg font-bold mb-3">Input CH @SelectedInput.Index</h3>
 
-            <!-- Name -->
             <div class="mb-4">
                 <label class="block text-sm text-gray-600">Name</label>
                 <input class="w-full border border-gray-300 p-2 rounded"
                        @bind="SelectedInput.Name" placeholder="Instrument name..." />
             </div>
 
-            <!-- COLOR DROPDOWN -->
             <div class="mb-4">
                 <label class="block text-sm text-gray-600">Color</label>
 
               <div class="flex items-center gap-3 mt-1">
               
-                  <!-- No color -->
                   <div class="flex flex-col items-center gap-1 cursor-pointer"
                        @onclick="() => SetColorForInput(null)">
                       <div class="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center">
@@ -87,13 +80,13 @@
                       <span class="text-[10px] text-gray-500">None</span>
                   </div>
               
-                  @foreach (var c in MixerColor.Enumerators)
+                  @foreach (var c in Color.Enumerators)
                   {
                       var isSelected = SelectedInput?.Color?.MappedValue == c.MappedValue;
               
                       <div class="flex flex-col items-center gap-1 cursor-pointer"
                            @onclick="() => SetColorForInput(c)">
-                          <div class="w-8 h-8 rounded-full flex items-center justify-center transition
+                          <div class="w-8 h-8 rounded-full flex items-center justify-center transition border border-gray-200
                                       @(isSelected ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110")"
                                style="background-color:@c.HexCode">
                           </div>
@@ -165,14 +158,14 @@
     private bool ShowGainModal = false;
     private float GainValue = 0;
     
-    private List<(int Index, string Short, MixerColor Color)> Outputs => new()
+    private List<(int Index, string Short, Color Color)> Outputs => new()
     {
-        (1, "B1", MixerColor.Red),
-        (2, "B2", MixerColor.Green),
-        (3, "B3", MixerColor.Yellow),
-        (4, "B4", MixerColor.Blue),
-        (11, "L", MixerColor.Magenta),
-        (12, "R", MixerColor.White)
+        (1, "B1", Color.Red),
+        (2, "B2", Color.Green),
+        (3, "B3", Color.Yellow),
+        (4, "B4", Color.Blue),
+        (11, "L", Color.Magenta),
+        (12, "R", Color.White)
     };
 
     void SelectInput(Channel channel)
@@ -206,7 +199,7 @@
     }
 
 
-    async Task SetColorForInput(MixerColor? c)
+    async Task SetColorForInput(Color? c)
     {
         if (SelectedInput == null) return;
 
@@ -252,7 +245,7 @@
     {
         public int Index { get; set; }
         public string? Name { get; set; }
-        public MixerColor? Color { get; set; }
+        public Color? Color { get; set; }
         public string ShortLabel { get; set; } = "";
     }
 }

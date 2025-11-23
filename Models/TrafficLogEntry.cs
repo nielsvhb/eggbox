@@ -1,6 +1,6 @@
 ﻿namespace Eggbox.Models;
 
-public record MixerTrafficEntry(
+public record TrafficLogEntry(
     DateTime Timestamp,
     bool IsTx,
     string Address,

@@ -1,14 +1,15 @@
 ﻿using Eggbox.Models;
 using Eggbox.Osc;
 using OscCore;
+using Color = Eggbox.Models.Color;
 
 namespace Eggbox.Services;
 
-public class MixerParser
+public class RxParser
 {
     private readonly MixerModel _model;
 
-    public MixerParser(MixerModel model)
+    public RxParser(MixerModel model)
     {
         _model = model;
     }
@@ -58,7 +59,14 @@ public class MixerParser
         if (OscAddress.Channel.Color.Match(addr, out ch))
         {
             var colorId = Convert.ToInt32(args[0]);
-            _model.Channels[ch - 1].Color = MixerColor.FromMappedValue(colorId);
+            _model.Channels[ch - 1].Color = Color.FromMappedValue(colorId);
+            _model.RaiseStateChanged(addr);
+            return true;
+        }
+
+        if (OscAddress.Channel.Name.Match(addr, out ch))
+        {
+            _model.Channels[ch - 1].Name = Convert.ToString(args[0]) ?? "-";
             _model.RaiseStateChanged(addr);
             return true;
         }
@@ -106,7 +114,7 @@ public class MixerParser
         if (OscAddress.Bus.Color.Match(addr, out bus))
         {
             var colorId = Convert.ToInt32(args[0]);
-            var color = MixerColor.FromMappedValue(colorId);
+            var color = Color.FromMappedValue(colorId);
             color.MatchSome(c =>
             {
                 _model.Busses[bus - 1].Color = c;

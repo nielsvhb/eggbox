@@ -1,8 +1,8 @@
 ﻿@attribute [Route(Routes.OscMonitor)]
 @using Eggbox.Services
 @using Eggbox.Models
-@inject MixerIO IO
-@inject MixerTrafficLogService Traffic
+@inject UDPService IO
+@inject TrafficLogger Traffic
 
 <h3 class="text-xl font-semibold mb-4">OSC Monitor</h3>
 
