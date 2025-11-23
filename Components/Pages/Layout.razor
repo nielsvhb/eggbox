@@ -5,71 +5,111 @@
 @inject MixerModel Model
 @inject NavigationManager Nav
 
-<section class="h-full flex flex-col">
-    <div class="p-3 flex flex-col items-center">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700">Choose inputs/outputs</h2>
-        <div class="relative p-3 border border-gray-300 rounded-xl bg-gray-100">
+<section class="h-full flex flex-col select-none">
+
+    <div class="p-4 flex flex-col items-center">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">
+            Choose inputs / outputs
+        </h2>
+
+        <div class="relative p-4 border border-gray-300 rounded-xl bg-gray-100">
+
             <div class="grid grid-cols-8 gap-2">
-                @foreach(var channel in Model.Channels) {
-                    <div class="w-9 h-9 rounded-full border flex items-center justify-center
-                                cursor-pointer hover:scale-110 transition"
-                         style="background-color:@(channel.Color.Match(
-                             some: c => c.HexCode,
-                             none: () => "transparent"
-                         ))"
-                         @onclick="() => SelectInput(channel)">
-                        @channel.Index
-                    </div>
-                }
+             @foreach (var ch in Model.Channels)
+             {
+                 var isActive = SelectedInput?.Index == ch.Index;
+             
+                 <div class="w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition
+                             @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")"
+                      style="
+                          background-color:@(ch.Color.Match(
+                                 c => c.HexCode,
+                                 () => "transparent"
+                          ));
+                          border-color:@(ch.Color.Match(
+                                 c => c.HexCode,
+                                 () => "#999"
+                          ));
+                      "
+                      @onclick="() => SelectInput(ch)">
+                     @ch.Index
+                 </div>
+             }
             </div>
 
             <div class="flex gap-1 mt-4 justify-center">
-                @foreach (var bus in Outputs)
-                {
-                    <div class="w-9 h-9 rounded-full rounded-tl border border-gray-500 flex items-center justify-center cursor-pointer
-                                hover:bg-gray-200 transition"
-                         style="background-color:@bus.Color.HexCode"
-                         @onclick="() => SelectOutput(bus.Index)">
-                        @bus.Short
-                    </div>
-                }
-                <div class="w-9 h-9 rounded-full bg-gray-400"></div> 
-                <div class="w-9 h-9 rounded-full bg-gray-400"></div> 
+              @foreach (var bus in Outputs)
+              {
+                  var isActive = SelectedOutput?.Index == bus.Index;
+              
+                  <div class="w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition
+                              @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")"
+                       style="background-color:@bus.Color.HexCode"
+                       @onclick="() => SelectOutput(bus.Index)">
+                      @bus.Short
+                  </div>
+              }
+                <div class="w-9 h-9 rounded-full bg-gray-400"></div>
+                <div class="w-9 h-9 rounded-full bg-gray-400"></div>
             </div>
         </div>
     </div>
 
 
+
+    <!-- EDIT PANEL -->
     <div class="border-t border-gray-300 p-6 bg-white shadow-inner">
+
+        <!-- INPUT PANEL -->
         @if (SelectedInput != null)
         {
-            <h3 class="text-lg font-bold mb-3">Input CH@SelectedInput.Index</h3>
+            <h3 class="text-lg font-bold mb-3">Input CH @SelectedInput.Index</h3>
 
+            <!-- Name -->
             <div class="mb-4">
                 <label class="block text-sm text-gray-600">Name</label>
                 <input class="w-full border border-gray-300 p-2 rounded"
                        @bind="SelectedInput.Name" placeholder="Instrument name..." />
             </div>
 
+            <!-- COLOR DROPDOWN -->
             <div class="mb-4">
-                <label class="block text-sm text-gray-600">Assigned Output Color</label>
-                <div class="flex gap-4 mt-2">
-                    @foreach (var c in Colors)
-                    {
-                        <div class="w-8 h-8 rounded-full border cursor-pointer hover:scale-110 transition"
-                             style="background-color:@c.HexCode"
-                             @onclick="() => SetColorForInput(c)">
-                        </div>
-                    }
-                </div>
+                <label class="block text-sm text-gray-600">Color</label>
+
+              <div class="flex items-center gap-3 mt-1">
+              
+                  <!-- No color -->
+                  <div class="flex flex-col items-center gap-1 cursor-pointer"
+                       @onclick="() => SetColorForInput(null)">
+                      <div class="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center">
+                          <span class="text-xs text-gray-500">×</span>
+                      </div>
+                      <span class="text-[10px] text-gray-500">None</span>
+                  </div>
+              
+                  @foreach (var c in MixerColor.Enumerators)
+                  {
+                      var isSelected = SelectedInput?.Color?.MappedValue == c.MappedValue;
+              
+                      <div class="flex flex-col items-center gap-1 cursor-pointer"
+                           @onclick="() => SetColorForInput(c)">
+                          <div class="w-8 h-8 rounded-full flex items-center justify-center transition
+                                      @(isSelected ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110")"
+                               style="background-color:@c.HexCode">
+                          </div>
+                          <span class="text-[10px] text-gray-500">@c.ToString()</span>
+                      </div>
+                  }
+              </div>
             </div>
 
-            <button class="btn btn-secondary mt-4"
-                    @onclick="OpenGainModal">
+            <button class="btn btn-primary mt-4" @onclick="OpenGainModal">
                 Adjust Gain
             </button>
         }
 
+
+        <!-- OUTPUT PANEL -->
         @if (SelectedOutput != null)
         {
             <h3 class="text-lg font-bold mb-3">Output: @SelectedOutput.ShortLabel</h3>
@@ -80,32 +120,59 @@
                        @bind="SelectedOutput.Name" placeholder="Person name..." />
             </div>
         }
+
     </div>
+
+
+
+    <!-- GAIN MODAL -->
+    @if (ShowGainModal)
+    {
+        <div class="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+
+            <div class="bg-white rounded-xl p-6 w-80 shadow-xl animate-fadein">
+
+                <h2 class="text-lg font-semibold mb-4">
+                    Gain — CH @SelectedInput?.Index
+                </h2>
+
+                <input type="range"
+                       min="-10"
+                       max="60"
+                       value="@GainValue"
+                       step="1"
+                       @oninput="OnGainChanged"
+                       class="w-full" />
+
+                <p class="mt-2 text-center text-gray-700">
+                    @GainValue dB
+                </p>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button class="btn" @onclick="CloseGainModal">Close</button>
+                </div>
+            </div>
+        </div>
+    }
 
 </section>
 
 
 @code {
+
     private SocketInfo? SelectedInput;
     private SocketInfo? SelectedOutput;
-
-    private List<MixerColor> Colors = new()
-    {
-        MixerColor.Red,
-        MixerColor.Green,
-        MixerColor.Yellow,
-        MixerColor.Blue,
-        MixerColor.Magenta
-    };
-
+    private bool ShowGainModal = false;
+    private float GainValue = 0;
+    
     private List<(int Index, string Short, MixerColor Color)> Outputs => new()
     {
         (1, "B1", MixerColor.Red),
         (2, "B2", MixerColor.Green),
         (3, "B3", MixerColor.Yellow),
         (4, "B4", MixerColor.Blue),
-        (11, "L", MixerColor.Magenta), // main L
-        (12, "R", MixerColor.White)  // main R
+        (11, "L", MixerColor.Magenta),
+        (12, "R", MixerColor.White)
     };
 
     void SelectInput(Channel channel)
@@ -114,50 +181,78 @@
         SelectedInput = new SocketInfo
         {
             Index = channel.Index,
-            Name = channel.Name ?? ""
+            Name = channel.Name,
+            Color = channel.Color.Match(c => c, () => null)
         };
+
+        GainValue = channel.Gain;
     }
+
 
     void SelectOutput(int bus)
     {
-        var (i, shortName, color) = Outputs.First(x => x.Index == bus);
-
         SelectedInput = null;
+
+        var def = Outputs.First(x => x.Index == bus);
+        var busModel = Model.Busses.FirstOrDefault(b => b.Index == bus);
+
         SelectedOutput = new SocketInfo
         {
-            Index = i,
-            Name = Model.Busses.FirstOrDefault(b => b.Index == i)?.Name ?? shortName,
-            Color = color,
-            ShortLabel = shortName
+            Index = bus,
+            Name = busModel?.Name ?? def.Short,
+            Color = def.Color,
+            ShortLabel = def.Short
         };
     }
 
-    async Task SetColorForInput(MixerColor c)
+
+    async Task SetColorForInput(MixerColor? c)
     {
         if (SelectedInput == null) return;
 
         SelectedInput.Color = c;
 
-        await Mixer.Channel(SelectedInput.Index).SetColor(c);
+        if (c is not null)
+        {
+            await Mixer.Channel(SelectedInput.Index).SetColor(c);
+        }
 
         StateHasChanged();
     }
 
+
+
     void OpenGainModal()
     {
-        // modal logica hier
+        ShowGainModal = true;
     }
-    
-    protected override async Task OnInitializedAsync()
+
+    void CloseGainModal()
     {
-        Model.StateChanged += key => InvokeAsync(StateHasChanged);
+        ShowGainModal = false;
     }
+
+    async Task OnGainChanged(ChangeEventArgs e)
+    {
+        GainValue = Convert.ToSingle(e.Value);
+        if (SelectedInput != null)
+        {
+            await Mixer.Channel(SelectedInput.Index).SetGain(GainValue);
+        }
+    }
+
+
+    protected override void OnInitialized()
+    {
+        Model.StateChanged += _ => InvokeAsync(StateHasChanged);
+    }
+
 
     public class SocketInfo
     {
         public int Index { get; set; }
         public string? Name { get; set; }
-        public MixerColor Color { get; set; } = MixerColor.Red;
+        public MixerColor? Color { get; set; }
         public string ShortLabel { get; set; } = "";
     }
 }

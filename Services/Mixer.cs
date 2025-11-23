@@ -1,4 +1,5 @@
 ﻿using Eggbox.Models;
+using Eggbox.Osc;
 using Optional;
 using OscCore;
 
@@ -125,46 +126,33 @@ public class ChannelControl
         _index = index;
     }
 
-    private Channel ChannelModel
-        => _model.Channels.First(c => c.Index == _index);
-
-    public int Index => _index;
-
-    public string Name => ChannelModel.Name;
-    public float Fader => ChannelModel.Fader;
-    public bool Mute => ChannelModel.Mute;
-    public float Gain => ChannelModel.Gain;
-    public Option<MixerColor> Color => ChannelModel.Color;
-    public IReadOnlyDictionary<int, ChannelSend> Sends => ChannelModel.Sends;
-
     public Task SetFader(float value)
-        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/fader", value));
+        => _io.SendAsync(new OscMessage(OscAddress.Channel.Fader.Build(_index), value));
 
     public Task SetMute(bool muted)
-        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/on", muted ? 0 : 1));
+        => _io.SendAsync(new OscMessage(OscAddress.Channel.Mute.Build(_index), muted ? 0 : 1));
 
     public Task SetGain(float gain)
-        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/preamp/gain", gain));
-    
-    public Task SetSendLevel(int busIndex, float value)
-        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/{busIndex:D2}/level", value));
-    
-    public Task SetSendMute(int busIndex, bool mute)
-        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/{busIndex:D2}/on", mute ? 0 : 1));
-    
+        => _io.SendAsync(new OscMessage(OscAddress.Channel.Gain.Build(_index), gain));
+
     public Task SetColor(MixerColor color)
-        => _io.SendAsync(new OscMessage($"/ch/{_index:D2}/config/color", color.MappedValue));
-    
+        => _io.SendAsync(new OscMessage(OscAddress.Channel.Color.Build(_index), color.MappedValue));
+
+    public Task SetSendLevel(int bus, float value)
+        => _io.SendAsync(new OscMessage(OscAddress.Channel.SendLevel.Build(_index, bus), value));
+
+    public Task SetSendMute(int bus, bool mute)
+        => _io.SendAsync(new OscMessage(OscAddress.Channel.SendMute.Build(_index, bus), mute ? 0 : 1));
+
     public Task RequestRefreshAsync()
-    {
-        return Task.WhenAll(
-            _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/fader")),
-            _io.SendAsync(new OscMessage($"/ch/{_index:D2}/mix/on")),
-            _io.SendAsync(new OscMessage($"/ch/{_index:D2}/preamp/gain")),
-            _io.SendAsync(new OscMessage($"/ch/{_index:D2}/config/color"))
+        => Task.WhenAll(
+            _io.SendAsync(new OscMessage(OscAddress.Channel.Fader.Build(_index))),
+            _io.SendAsync(new OscMessage(OscAddress.Channel.Mute.Build(_index))),
+            _io.SendAsync(new OscMessage(OscAddress.Channel.Gain.Build(_index))),
+            _io.SendAsync(new OscMessage(OscAddress.Channel.Color.Build(_index)))
         );
-    }
 }
+
 
 public class BusControl
 {
@@ -172,43 +160,32 @@ public class BusControl
     private readonly MixerModel _model;
     private readonly int _bus;
 
-    public BusControl(MixerIO io, MixerModel model, int busIndex)
+    public BusControl(MixerIO io, MixerModel model, int bus)
     {
         _io = io;
         _model = model;
-        _bus = busIndex;
+        _bus = bus;
     }
-
-    private Bus BusModel
-        => _model.Busses.First(b => b.Index == _bus);
-
-    public int Index => _bus;
-    public string Name => BusModel.Name;
-    public float Fader => BusModel.Fader;
-    public bool Mute => BusModel.Mute;
-    public MixerColor Color => BusModel.Color;
 
     public Task SetFader(float value)
-        => _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/fader", value));
+        => _io.SendAsync(new OscMessage(OscAddress.Bus.Fader.Build(_bus), value));
 
     public Task SetMute(bool mute)
-        => _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/on", mute ? 0 : 1));
+        => _io.SendAsync(new OscMessage(OscAddress.Bus.Mute.Build(_bus), mute ? 0 : 1));
 
     public Task SetName(string name)
-        => _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/name", name));
+        => _io.SendAsync(new OscMessage(OscAddress.Bus.Name.Build(_bus), name));
 
     public Task SetColor(MixerColor color)
-        => _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/color", color.MappedValue));
-    
+        => _io.SendAsync(new OscMessage(OscAddress.Bus.Color.Build(_bus), color.MappedValue));
+
     public Task RequestRefreshAsync()
-    {
-        return Task.WhenAll(
-            _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/fader")),
-            _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/mix/on")),
-            _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/name")),
-            _io.SendAsync(new OscMessage($"/bus/{_bus:D2}/config/color"))
+        => Task.WhenAll(
+            _io.SendAsync(new OscMessage(OscAddress.Bus.Fader.Build(_bus))),
+            _io.SendAsync(new OscMessage(OscAddress.Bus.Mute.Build(_bus))),
+            _io.SendAsync(new OscMessage(OscAddress.Bus.Name.Build(_bus))),
+            _io.SendAsync(new OscMessage(OscAddress.Bus.Color.Build(_bus)))
         );
-    }
 
     public ChannelSendControl Channel(int ch)
         => new (_io, _model, ch, _bus);
@@ -260,22 +237,17 @@ public class MainControl
         _model = model;
     }
 
-    public float Fader => _model.Main.Fader;
-    public bool Mute => _model.Main.Mute;
-
     public Task SetFader(float value)
-        => _io.SendAsync(new OscMessage("/lr/mix/fader", value));
+        => _io.SendAsync(new OscMessage(OscAddress.Main.Fader, value));
 
     public Task SetMute(bool mute)
-        => _io.SendAsync(new OscMessage("/lr/mix/on", mute ? 0 : 1));
-    
+        => _io.SendAsync(new OscMessage(OscAddress.Main.Mute, mute ? 0 : 1));
+
     public Task RequestRefreshAsync()
-    {
-        return Task.WhenAll(
-            _io.SendAsync(new OscMessage("/lr/mix/fader")),
-            _io.SendAsync(new OscMessage("/lr/mix/on"))
+        => Task.WhenAll(
+            _io.SendAsync(new OscMessage(OscAddress.Main.Fader)),
+            _io.SendAsync(new OscMessage(OscAddress.Main.Mute))
         );
-    }
     
     public ChannelControl Channel(int index)
         => new ChannelControl(_io, _model, index);

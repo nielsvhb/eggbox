@@ -4,13 +4,13 @@ public static class OscAddress
 {
     public static class Channel
     {
-        public static readonly OscPattern Fader     = new("/ch/{0}/mix/fader");
-        public static readonly OscPattern Mute      = new("/ch/{0}/mix/on");
-        public static readonly OscPattern Gain      = new("/ch/{0}/preamp/gain");
-        public static readonly OscPattern Color     = new("/ch/{0}/config/color");
+        public static readonly OscPattern Fader     = new("/ch/{0:D2}/mix/fader");
+        public static readonly OscPattern Mute      = new("/ch/{0:D2}/mix/on");
+        public static readonly OscPattern Gain      = new("/headamp/{0:D2}/gain");
+        public static readonly OscPattern Color     = new("/ch/{0:D2}/config/color");
 
-        public static readonly OscPattern SendLevel = new("/ch/{0}/mix/{1}/level");
-        public static readonly OscPattern SendMute  = new("/ch/{0}/mix/{1}/on");
+        public static readonly OscPattern SendLevel = new("/ch/{0:D2}/mix/{1:D2}/level");
+        public static readonly OscPattern SendMute  = new("/ch/{0:D2}/mix/{1:D2}/on");
     }
 
     public static class Bus

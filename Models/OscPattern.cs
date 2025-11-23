@@ -3,50 +3,72 @@
 public sealed class OscPattern
 {
     private readonly string _template;
-    private readonly string[] _parts;
 
     public OscPattern(string template)
     {
         _template = template;
-        _parts = template.Split('/', StringSplitOptions.RemoveEmptyEntries);
     }
+
+    public string Build(params object[] args)
+        => string.Format(_template, args);
 
     public bool Match(string address, out int p1)
     {
         p1 = -1;
-        var a = address.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (a.Length != _parts.Length) return false;
 
-        for (int i = 0; i < _parts.Length; i++)
+        var patternParts = _template.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var addrParts = address.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        if (patternParts.Length != addrParts.Length)
+            return false;
+
+        for (int i = 0; i < patternParts.Length; i++)
         {
-            if (_parts[i].StartsWith("{"))
+            if (patternParts[i].StartsWith("{"))
             {
-                if (!int.TryParse(a[i], out p1)) return false;
+                if (!int.TryParse(addrParts[i], out p1))
+                    return false;
             }
-            else if (_parts[i] != a[i]) return false;
+            else if (!string.Equals(patternParts[i], addrParts[i], StringComparison.Ordinal))
+            {
+                return false;
+            }
         }
+
         return true;
     }
 
     public bool Match(string address, out int p1, out int p2)
     {
-        p1 = -1; p2 = -1;
-        var a = address.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (a.Length != _parts.Length) return false;
+        p1 = -1;
+        p2 = -1;
+
+        var patternParts = _template.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var addrParts = address.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        if (patternParts.Length != addrParts.Length)
+            return false;
 
         int paramIndex = 0;
 
-        for (int i = 0; i < _parts.Length; i++)
+        for (int i = 0; i < patternParts.Length; i++)
         {
-            if (_parts[i].StartsWith("{"))
+            if (patternParts[i].StartsWith("{"))
             {
-                if (!int.TryParse(a[i], out int val)) return false;
-                if (paramIndex == 0) p1 = val;
-                else p2 = val;
+                if (!int.TryParse(addrParts[i], out var parsed))
+                    return false;
+
+                if (paramIndex == 0) p1 = parsed;
+                else p2 = parsed;
+
                 paramIndex++;
             }
-            else if (_parts[i] != a[i]) return false;
+            else if (!string.Equals(patternParts[i], addrParts[i], StringComparison.Ordinal))
+            {
+                return false;
+            }
         }
+
         return true;
     }
 
