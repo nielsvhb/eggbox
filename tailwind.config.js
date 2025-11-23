@@ -20,7 +20,6 @@ module.exports = {
             white: colors.white,
             gray: colors.slate,
             primary: "#ee3967",
-            primaryDark: "#FF5c7D",
             accent: "#E1CE55"
         },
         extend: {
@@ -28,7 +27,7 @@ module.exports = {
                 '3xl': '2rem',
             },
             fontFamily: {
-                fredoka: ['"Fredoka"', 'sans-serif'],
+                fredoka: ["Manrope", 'sans-serif'],
             },
         },
     },

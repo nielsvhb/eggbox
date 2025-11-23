@@ -1,4 +1,5 @@
-﻿using Eggbox.Models;
+﻿using Eggbox.Helpers;
+using Eggbox.Models;
 using Eggbox.Osc;
 using OscCore;
 using Color = Eggbox.Models.Color;
@@ -53,8 +54,8 @@ public class RxParser
         {
             var channel = _model.Channels.First(c => c.Index == ch);
 
-            double linear = Convert.ToSingle(args[0]);
-            channel.Gain = (float)GainConverter.LinearToDb(linear);
+            channel.Gain = (float)LevelConverters.GainLinearToDb(Convert.ToSingle(args[0]));
+            if (channel.Gain < -12) channel.Gain = -12;
 
             _model.RaiseStateChanged(addr);
             return true;

@@ -9,3 +9,7 @@
 .btn.btn-primary {
     @apply text-white bg-gradient-to-br from-primary to-primary-dark hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-primary
 }
+
+h1, h2, h3 {
+    @apply font-manrope;
+}

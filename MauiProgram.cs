@@ -14,7 +14,14 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .ConfigureFonts(fonts => { fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular"); });
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("Manrope-Regular.ttf", "Manrope");
+                fonts.AddFont("Manrope-Bold.ttf", "ManropeBold");
+                fonts.AddFont("Manrope-Medium.ttf", "ManropeMedium");
+                fonts.AddFont("Manrope-SemiBold.ttf", "ManropeSemiBold");
+            });
         builder.Logging.SetMinimumLevel(LogLevel.Information);
 
         builder.Services.AddMauiBlazorWebView();

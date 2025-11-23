@@ -3,21 +3,19 @@
 @using Eggbox.Models
 @using Microsoft.Extensions.Logging
 @inject Mixer Mixer
-@inject UDPService IO
 @inject BroadcastScanner Scanner
 @inject ILogger<Home> Logger
 @inject NavigationManager NavManager
 
-<section class="h-full bg-gradient-to-b from-primary to-primary-dark text-gray-200">
-    <div class="container flex flex-col h-full py-5 bg-[radial-gradient(#e5e7eb20_2px,transparent_2px)] [background-size:16px_16px]">
+<section class="h-full bg-primary text-gray-200">
+    <div class="container flex flex-col h-full py-5">
         <article class="mt-32">
-            <h1 class="text-white text-6xl font-bold font-fredoka text-center mb-6">EggBox</h1>
+            <h2 class="text-white text-xl font-semibold text-center mb-4">Connect to a mixer</h2>
 
             @if (_state == ConnectState.Connecting)
             {
-                <div class="text-center">
-                    <p class="mb-4">Connecting...</p>
-                    <i class="fas fa-spinner animate-spin text-white text-3xl"></i>
+                <div class="text-center mt-12">
+                    <LoadingSpinner />
                 </div>
             }
             else if (_state == ConnectState.Connected)

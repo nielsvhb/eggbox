@@ -1,4 +1,5 @@
-﻿using Eggbox.Models;
+﻿using Eggbox.Helpers;
+using Eggbox.Models;
 using Eggbox.Osc;
 using Optional;
 using OscCore;
@@ -135,10 +136,9 @@ public class ChannelControl
 
     public Task SetGain(float db)
     {
-        double linear = GainConverter.DbToLinear(db);
-        return _io.SendAsync(
-            new OscMessage(OscAddress.Channel.Gain.Build(_index), (float)linear)
-        );
+        var linear = LevelConverters.GainDbToLinear(db);
+        linear = Math.Clamp(linear, 0.0, 1.0);
+        return _io.SendAsync(new OscMessage(OscAddress.Channel.Gain.Build(_index), (float)linear));
     }
 
     public Task SetColor(Color color)

@@ -27,10 +27,6 @@
                                  c => c.HexCode,
                                  () => "transparent"
                           ));
-                          border-color:@(ch.Color.Match(
-                                 c => c.HexCode,
-                                 () => "#999"
-                          ));
                       "
                       @onclick="() => SelectInput(ch)">
                      @ch.Index
@@ -43,7 +39,7 @@
               {
                   var isActive = SelectedOutput?.Index == bus.Index;
               
-                  <div class="w-9 h-9 rounded-full rounded-tl-sm border flex items-center justify-center cursor-pointer transition
+                  <div class="w-9 h-9 rounded-tl-lg rounded-tr-4xl rounded-b-4xl border flex items-center justify-center cursor-pointer transition
                               @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")"
                        style="background-color:@bus.Color.HexCode"
                        @onclick="() => SelectOutput(bus.Index)">
@@ -130,7 +126,7 @@
                 </h2>
 
                 <input type="range"
-                       min="-10"
+                       min="-12"
                        max="60"
                        value="@GainValue"
                        step="1"
