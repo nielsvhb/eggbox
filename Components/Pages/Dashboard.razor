@@ -3,6 +3,7 @@
 @using Eggbox.Models
 @using Optional
 @using Color = Eggbox.Models.Color
+@using Eggbox.Helpers
 
 @inject Mixer Mixer
 @inject MixerModel Model
@@ -31,9 +32,7 @@
 
     <div class="flex justify-between items-center">
         <div class="flex items-center gap-2">
-            <h1 class="text-xl font-semibold">Mixer Dashboard</h1>
-
-            <select @bind="_selectedOutput" class="select select-sm select-bordered ml-3">
+            <select @bind="_selectedOutput">
                 <option value="0">Main LR</option>
 
                 @foreach (var b in Model.Busses)
@@ -50,12 +49,12 @@
     }
     else if (_channels.Any())
     {
-        <div class="grid gap-3 grid-cols-12 mt-3">
+        <div class="grid gap-2 grid-cols-8 mt-3">
             @foreach (var ch in _channels)
             {
                 <div class="rounded-lg border p-2 text-center bg-white/60 backdrop-blur fader-card">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="font-semibold text-sm">@ch.Name</span>
+                        <span class="font-medium text-[9xs]">@ch.Name</span>
 
                         <input type="checkbox"
                                checked="@ch.Muted"
@@ -90,33 +89,32 @@
 
     protected override void OnInitialized()
     {
-        // Rebuild UI when mixer state changes
         Model.StateChanged += _ =>
         {
-            BuildVM();
+            BuildVm();
             InvokeAsync(StateHasChanged);
         };
 
-        BuildVM();
+        BuildVm();
         _loading = false;
     }
 
-    private void BuildVM()
+    private void BuildVm()
     {
         _channels = Model.Channels.Select(ch =>
         {
-            float fader = _selectedOutput == 0
-                ? ch.Fader            // main mix fader
+            var fader = _selectedOutput == 0
+                ? ch.Fader            
                 : ch.Sends.TryGetValue(_selectedOutput, out var s) ? s.Level : 0f;
 
-            bool mute = _selectedOutput == 0
+            var mute = _selectedOutput == 0
                 ? ch.Mute
                 : ch.Sends.TryGetValue(_selectedOutput, out var s2) && s2.Mute;
 
             return new ChannelVm
             {
                 Index = ch.Index,
-                Name = ch.Name ?? $"Ch {ch.Index:D2}",
+                Name = ch.Name,
                 Fader = fader,
                 Muted = mute,
                 Color = ch.Color
@@ -124,26 +122,14 @@
         }).ToList();
     }
 
-    private async Task Reload()
-    {
-        _loading = true;
-        StateHasChanged();
-
-        await Mixer.ReloadChannels();
-
-        _loading = false;
-        BuildVM();
-        StateHasChanged();
-    }
-
     private async Task OnFaderChanged(ChannelVm vm, float value)
     {
         vm.Fader = value;
 
         if (_selectedOutput == 0)
-            await Mixer.Main().Channel(vm.Index).SetFader(value);
+            await Mixer.Channel(vm.Index).SetFader(value);
         else
-            await Mixer.Bus(_selectedOutput).Channel(vm.Index).SetFader(value);
+            await Mixer.Channel(vm.Index).SetSendLevel(_selectedOutput, value);
     }
 
     private async Task ToggleMute(ChannelVm vm, bool muted)
@@ -151,16 +137,16 @@
         vm.Muted = muted;
 
         if (_selectedOutput == 0)
-            await Mixer.Main().Channel(vm.Index).SetMute(muted);
+            await Mixer.Channel(vm.Index).SetMute(muted);
         else
-            await Mixer.Bus(_selectedOutput).Channel(vm.Index).SetMute(muted);
+            await Mixer.Channel(vm.Index).SetSendMute(_selectedOutput, muted);
     }
 
     private sealed class ChannelVm
     {
         public int Index { get; set; }
         public string Name { get; set; } = "";
-        public float Fader { get; set; }
+        public DecibelFader Fader { get; set; }
         public bool Muted { get; set; }
         public Option<Color> Color { get; set; }
     }

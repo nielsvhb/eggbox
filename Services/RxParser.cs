@@ -36,32 +36,37 @@ public class RxParser
     // ----------------------------
     private bool HandleChannel(string addr, object[] args)
     {
+        // Fader
         if (OscAddress.Channel.Fader.Match(addr, out int ch))
         {
-            _model.Channels[ch - 1].Fader = Convert.ToSingle(args[0]);
+            var lin = Convert.ToSingle(args[0]);
+            var db = DecibelFader.FromLinear(lin);
+
+            _model.Channels[ch - 1].Fader = db;
             _model.RaiseStateChanged(addr);
             return true;
         }
 
+        // Mute
         if (OscAddress.Channel.Mute.Match(addr, out ch))
         {
             _model.Channels[ch - 1].Mute = Convert.ToInt32(args[0]) == 0;
             _model.RaiseStateChanged(addr);
             return true;
         }
-        
+
+        // Gain
         if (OscAddress.Channel.Gain.Match(addr, out ch))
         {
-            var channel = _model.Channels.First(c => c.Index == ch);
+            var lin = Convert.ToSingle(args[0]);
+            var gain = DecibelGain.FromLinear(lin);
 
-            channel.Gain = (float)LevelConverters.GainLinearToDb(Convert.ToSingle(args[0]));
-            if (channel.Gain < -12) channel.Gain = -12;
-
+            _model.Channels[ch - 1].Gain = gain;
             _model.RaiseStateChanged(addr);
             return true;
         }
 
-
+        // Color
         if (OscAddress.Channel.Color.Match(addr, out ch))
         {
             var colorId = Convert.ToInt32(args[0]);
@@ -70,6 +75,7 @@ public class RxParser
             return true;
         }
 
+        // Name
         if (OscAddress.Channel.Name.Match(addr, out ch))
         {
             _model.Channels[ch - 1].Name = Convert.ToString(args[0]) ?? "-";
@@ -77,15 +83,20 @@ public class RxParser
             return true;
         }
 
+        // Send Level
         if (OscAddress.Channel.SendLevel.Match(addr, out ch, out int bus))
         {
+            var lin = Convert.ToSingle(args[0]);
+            var db = DecibelFader.FromLinear(lin);
+
             var send = _model.Channels[ch - 1].GetOrCreateSend(bus);
-            send.Level = Convert.ToSingle(args[0]);
+            send.Level = db;
 
             _model.RaiseStateChanged(addr);
             return true;
         }
 
+        // Send Mute
         if (OscAddress.Channel.SendMute.Match(addr, out ch, out bus))
         {
             var send = _model.Channels[ch - 1].GetOrCreateSend(bus);
@@ -97,6 +108,7 @@ public class RxParser
 
         return false;
     }
+
 
     // ----------------------------
     // BUS

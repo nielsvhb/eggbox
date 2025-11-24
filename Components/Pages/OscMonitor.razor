@@ -56,10 +56,8 @@
         var argStrings = parts.Skip(1).ToArray();
 
         object[] oscArgs = argStrings.Select(ParseArgument).ToArray();
-
-        var msg = new OscCore.OscMessage(address, oscArgs);
-
-        await IO.SendAsync(msg);
+        
+        await IO.SendMessage(address, oscArgs);
 
         command = "";
     }

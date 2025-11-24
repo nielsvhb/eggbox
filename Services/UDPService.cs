@@ -53,7 +53,7 @@ public sealed class UDPService : IDisposable
         await Task.CompletedTask;
     }
 
-    public async Task SendAsync(OscMessage msg)
+    private async Task SendAsync(OscMessage msg)
     {
         if (_client == null || _remoteEndPoint == null)
             throw new InvalidOperationException("UDPService is not connected.");
@@ -121,4 +121,45 @@ public sealed class UDPService : IDisposable
     {
         _ = DisconnectAsync();
     }
+    
+    public Task SendMessage(string address, object? value = null)
+    {
+        OscMessage message;
+
+        if (value is null)
+        {
+            message = new OscMessage(address);
+        }
+        else if (value is DecibelGain gain)
+        {
+            message = new OscMessage(address, (float)gain.ToLinear());
+        }
+        else if (value is DecibelFader fader)
+        {
+            message = new OscMessage(address, (float)fader.ToLinear());
+        }
+        else if (value is float f)
+        {
+            message = new OscMessage(address, f);
+        }
+        else if (value is double d)
+        {
+            message = new OscMessage(address, (float)d);
+        }
+        else if (value is int i)
+        {
+            message = new OscMessage(address, i);
+        }
+        else if (value is string s)
+        {
+            message = new OscMessage(address, s);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unsupported OSC argument type: {value.GetType()}");
+        }
+
+        return SendAsync(message);
+    }
+
 }

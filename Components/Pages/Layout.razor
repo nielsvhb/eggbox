@@ -2,6 +2,7 @@
 @using Eggbox.Models
 @using Eggbox.Services
 @using Color = Eggbox.Models.Color
+@using Eggbox.Helpers
 @inject Mixer Mixer
 @inject MixerModel Model
 @inject NavigationManager Nav
@@ -134,7 +135,7 @@
                        class="w-full" />
 
                 <p class="mt-2 text-center text-gray-700">
-                    @GainValue dB
+                    @GainValue
                 </p>
 
                 <div class="flex justify-end gap-2 mt-4">
@@ -152,7 +153,7 @@
     private SocketInfo? SelectedInput;
     private SocketInfo? SelectedOutput;
     private bool ShowGainModal = false;
-    private float GainValue = 0;
+    private DecibelGain GainValue = 0;
     private string NameValue = "";
     
     private List<(int Index, string Short, Color Color)> Outputs => new()

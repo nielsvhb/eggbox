@@ -647,6 +647,9 @@
   .whitespace-nowrap {
     white-space: nowrap;
   }
+  .text-\[9xs\] {
+    color: 9xs;
+  }
   .text-gray-200 {
     color: oklch(92.9% 0.013 255.508);
   }
