@@ -166,7 +166,7 @@
         (12, "R", Color.White)
     };
 
-    async Task SelectInput(Channel channel)
+    void SelectInput(Channel channel)
     {
         SelectedOutput = null;
         SelectedInput = new SocketInfo
@@ -244,10 +244,27 @@
         await Mixer.Channel(SelectedInput.Index).SetName(newName);
     }
 
+    private void SyncSelectedInput()
+    {
+        if (SelectedInput == null)
+            return;
+
+        var live = Model.Channels.FirstOrDefault(c => c.Index == SelectedInput.Index);
+        if (live == null)
+            return;
+
+        SelectedInput.Name = live.Name;
+        SelectedInput.Color = live.Color.Match(c => c, () => null);
+        GainValue = live.Gain; 
+    }
 
     protected override void OnInitialized()
     {
-        Model.StateChanged += _ => InvokeAsync(StateHasChanged);
+        Model.StateChanged += _ =>
+        {
+            SyncSelectedInput();
+            InvokeAsync(StateHasChanged);
+        };    
     }
 
 

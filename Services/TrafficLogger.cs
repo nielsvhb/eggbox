@@ -11,24 +11,7 @@ public class TrafficLogger
 {
     public ObservableCollection<TrafficLogEntry> Log { get; } = new();
 
-    public void AddTx(OscMessage msg)
-    {
-        var args = msg.Select(a => (object)a).ToArray();
-
-        var entry = new TrafficLogEntry(
-            Timestamp: DateTime.UtcNow,
-            IsTx: true,
-            Address: msg.Address,
-            Arguments: args,
-            Handled: true,
-            RxTime: null,
-            ParseStart: null,
-            ParseEnd: null
-        );
-
-        Add(entry);
-    }
-
+    
     public void AddRx(
         OscMessage msg,
         bool handled,
@@ -51,6 +34,32 @@ public class TrafficLogger
 
         Add(entry);
     }
+    
+    public void AddTxQueued(OscMessage msg) =>
+        AddTxWithLabel(msg, "(queued)");
+
+    public void AddTxThrottled(OscMessage msg) =>
+        AddTxWithLabel(msg, "(sent)");
+
+    private void AddTxWithLabel(OscMessage msg, string label)
+    {
+        var args = msg.Select(a => (object)a).ToArray();
+
+        var entry = new TrafficLogEntry(
+            Timestamp: DateTime.UtcNow,
+            IsTx: true,
+            Address: $"{msg.Address}  {label}",
+            Arguments: args,
+            Handled: true,
+            RxTime: null,
+            ParseStart: null,
+            ParseEnd: null
+        );
+
+        Add(entry);
+    }
+
+
 
     private void Add(TrafficLogEntry logEntry)
     {

@@ -14,9 +14,27 @@ public class MixerModel
 
     public bool IsConnected { get; set; }
     public string? IpAddress { get; set; }
+    
+    public HashSet<string> InitExpected { get; set; } = new();
+    public HashSet<string> InitCompleted { get; set; } = new();
 
     public event Action<string>? StateChanged;
     public void RaiseStateChanged(string key) => StateChanged?.Invoke(key);
+    
+    public double InitProgress =>
+        InitExpected.Count == 0 ? 0 :
+            (double)InitCompleted.Count / InitExpected.Count;
+    public bool IsInitialized => 
+        InitExpected.Count > 0 &&
+        InitCompleted.Count >= InitExpected.Count;
+
+    public void MarkInitProgress(string address)
+    {
+        if (InitExpected.Contains(address))
+            InitCompleted.Add(address);
+
+        RaiseStateChanged(address);
+    }
 }
 
 public class MixerInfo

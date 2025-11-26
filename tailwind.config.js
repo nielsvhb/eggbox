@@ -27,7 +27,7 @@ module.exports = {
                 '3xl': '2rem',
             },
             fontFamily: {
-                fredoka: ["Manrope", 'sans-serif'],
+                manrope: ["Manrope", 'sans-serif'],
             },
         },
     },

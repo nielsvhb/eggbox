@@ -1,17 +1,46 @@
 ﻿@inherits LayoutComponentBase
 @using Eggbox.Services
+@using Eggbox.Models
 @inject Mixer Mixer
+@inject MixerModel Model
 
 <div class="h-screen flex flex-col">
-    <div class="flex-1 overflow-auto">
-        @Body
-    </div>
+
+    
+    @if (Mixer.State.IsConnected && !Model.IsInitialized)
+    {
+        <div class="p-4 shadow-sm border-b border-gray-300 bg-primary h-screen w-screen text-white flex flex-col items-center justify-center">
+    
+            <p class="text-sm">
+                Loading mixer settings…
+            </p>
+            
+            <div class="text-center mt-16">
+                <LoadingSpinner />
+            </div>
+            <p class="text-sm mt-2">
+                @($"{Model.InitCompleted.Count}/{Model.InitExpected.Count}")
+            </p>
+            <div class="w-full bg-white/40 h-3 rounded-xl mt-2">
+                <div class="bg-white h-3 rounded-xl transition-all duration-200"
+                     style="width:@($"{Model.InitProgress*100:F0}%")">
+                </div>
+            </div>
+        </div>
+    }
+    
+    @if (!Mixer.State.IsConnected || Model.IsInitialized)
+    {
+        <div class="flex-1 overflow-auto">
+            @Body
+        </div>
+    }
 
     @if (Mixer.State.IsConnected)
     {
         <nav class="bg-white border-t border-gray-200 shadow-lg flex justify-around items-center text-gray-500">
 
-            <NavLink href="@Routes.Layout" 
+            <NavLink href="@Routes.Layout"
                      class="flex flex-col items-center gap-1 px-4 py-2"
                      ActiveClass="text-primary"
                      Match="NavLinkMatch.All">
@@ -19,15 +48,15 @@
                 <span class="text-xs">Layout</span>
             </NavLink>
 
-            <NavLink href="@Routes.Dashboard" 
-                      ActiveClass="text-primary"
+            <NavLink href="@Routes.Dashboard"
+                     ActiveClass="text-primary"
                      class="flex flex-col items-center gap-1 px-4 py-2">
                 <i class="fas fa-square-sliders-vertical text-xl"></i>
                 <span class="text-xs">Dashboard</span>
             </NavLink>
 
-            <NavLink href="@Routes.OscMonitor" 
-                      ActiveClass="text-primary"
+            <NavLink href="@Routes.OscMonitor"
+                     ActiveClass="text-primary"
                      class="flex flex-col items-center gap-1 px-4 py-2">
                 <i class="fas fa-terminal text-xl"></i>
                 <span class="text-xs">OSC</span>
@@ -36,3 +65,12 @@
         </nav>
     }
 </div>
+
+@code{
+
+    protected override void OnInitialized()
+    {
+        Model.StateChanged += _ => InvokeAsync(StateHasChanged);
+    }
+
+}

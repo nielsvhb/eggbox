@@ -14,9 +14,7 @@ public sealed class MixerIO : IAsyncDisposable
     private CancellationTokenSource? _cts;
     private Timer? _subscriptionTimer;
     private IPEndPoint? _remoteEndPoint;
-
-    public event Action<OscMessage, DateTime>? MessageReceived;
-    public event Action<OscMessage, DateTime>? MessageSent;
+    private readonly OscThrottler _throttler;
 
     public int LocalPort { get; private set; }
 
@@ -27,6 +25,8 @@ public sealed class MixerIO : IAsyncDisposable
         _logger = logger;
         _parser = parser;
         _traffic = traffic;
+        _throttler = new OscThrottler(15, traffic);
+
     }
 
     public async Task ConnectAsync(string hostName, int port = 10024, int? localPort = null)
@@ -63,8 +63,6 @@ public sealed class MixerIO : IAsyncDisposable
         var sentAt = DateTime.UtcNow;
 
         await _client.SendAsync(data, data.Length, _remoteEndPoint).ConfigureAwait(false);
-
-        MessageSent?.Invoke(msg, sentAt);
     }
 
     private Task StartReceivingAsync(CancellationToken token) => Task.Run(async () =>
@@ -83,7 +81,6 @@ public sealed class MixerIO : IAsyncDisposable
 
                 if (packet is OscMessage msg)
                 {
-                    MessageReceived?.Invoke(msg, rxTime);
                     bool handled = _parser.ApplyOscMessage(msg,
                         out var parseStart,
                         out var parseEnd);
@@ -122,42 +119,22 @@ public sealed class MixerIO : IAsyncDisposable
     
     public Task SendMessage(string address, object? value = null)
     {
-        OscMessage message;
-
-        if (value is null)
+        OscMessage Make()
         {
-            message = new OscMessage(address);
-        }
-        else if (value is DecibelGain gain)
-        {
-            message = new OscMessage(address, (float)gain.ToLinear());
-        }
-        else if (value is DecibelFader fader)
-        {
-            message = new OscMessage(address, (float)fader.ToLinear());
-        }
-        else if (value is float f)
-        {
-            message = new OscMessage(address, f);
-        }
-        else if (value is double d)
-        {
-            message = new OscMessage(address, (float)d);
-        }
-        else if (value is int i)
-        {
-            message = new OscMessage(address, i);
-        }
-        else if (value is string s)
-        {
-            message = new OscMessage(address, s);
-        }
-        else
-        {
+            if (value is null) return new OscMessage(address);
+            if (value is DecibelGain g) return new OscMessage(address, (float)g.ToLinear());
+            if (value is DecibelFader f) return new OscMessage(address, (float)f.ToLinear());
+            if (value is float fl) return new OscMessage(address, fl);
+            if (value is double d) return new OscMessage(address, (float)d);
+            if (value is int i) return new OscMessage(address, i);
+            if (value is string s) return new OscMessage(address, s);
             throw new InvalidOperationException($"Unsupported OSC argument type: {value.GetType()}");
         }
 
-        return SendAsync(message);
+        var msg = Make();
+
+        _throttler.Enqueue(msg, () => SendAsync(msg));
+        return Task.CompletedTask;
     }
 
 }

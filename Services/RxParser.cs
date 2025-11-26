@@ -30,6 +30,8 @@ public class RxParser
         parseEnd = DateTime.UtcNow;
         return handled;
     }
+    
+    
 
     // ----------------------------
     // CHANNEL
@@ -43,7 +45,8 @@ public class RxParser
             var db = DecibelFader.FromLinear(lin);
 
             _model.Channels[ch - 1].Fader = db;
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
@@ -51,7 +54,8 @@ public class RxParser
         if (OscAddress.Channel.Mute.Match(addr, out ch))
         {
             _model.Channels[ch - 1].Mute = Convert.ToInt32(args[0]) == 0;
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
@@ -62,7 +66,8 @@ public class RxParser
             var gain = DecibelGain.FromLinear(lin);
 
             _model.Channels[ch - 1].Gain = gain;
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
@@ -71,7 +76,8 @@ public class RxParser
         {
             var colorId = Convert.ToInt32(args[0]);
             _model.Channels[ch - 1].Color = Color.FromMappedValue(colorId);
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
@@ -79,7 +85,8 @@ public class RxParser
         if (OscAddress.Channel.Name.Match(addr, out ch))
         {
             _model.Channels[ch - 1].Name = Convert.ToString(args[0]) ?? "-";
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
@@ -92,7 +99,8 @@ public class RxParser
             var send = _model.Channels[ch - 1].GetOrCreateSend(bus);
             send.Level = db;
 
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
@@ -102,7 +110,8 @@ public class RxParser
             var send = _model.Channels[ch - 1].GetOrCreateSend(bus);
             send.Mute = Convert.ToInt32(args[0]) == 0;
 
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
@@ -118,14 +127,16 @@ public class RxParser
         if (OscAddress.Bus.Fader.Match(addr, out int bus))
         {
             _model.Busses[bus - 1].Fader = Convert.ToSingle(args[0]);
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
         if (OscAddress.Bus.Mute.Match(addr, out bus))
         {
             _model.Busses[bus - 1].Mute = Convert.ToInt32(args[0]) == 0;
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
@@ -136,7 +147,8 @@ public class RxParser
             color.MatchSome(c =>
             {
                 _model.Busses[bus - 1].Color = c;
-                _model.RaiseStateChanged(addr); 
+                _model.MarkInitProgress(addr);
+
             });
           
             return true;
@@ -145,7 +157,8 @@ public class RxParser
         if (OscAddress.Bus.Name.Match(addr, out bus))
         {
             _model.Busses[bus - 1].Name = Convert.ToString(args[0]) ?? "";
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
@@ -161,14 +174,16 @@ public class RxParser
         // if (OscAddress.Fx.Fader.Match(addr, out int fx))
         // {
         //     (_model.Fx1, _model.Fx2)[fx - 1].Fader = Convert.ToSingle(args[0]);
-        //     _model.RaiseStateChanged(addr);
+        //      _model.MarkInitProgress(addr);
+
         //     return true;
         // }
         //
         // if (OscAddress.Fx.Mute.Match(addr, out fx))
         // {
         //     (_model.Fx1, _model.Fx2)[fx - 1].Mute = Convert.ToInt32(args[0]) == 0;
-        //     _model.RaiseStateChanged(addr);
+        //_model.MarkInitProgress(addr);
+
         //     return true;
         // }
 
@@ -183,14 +198,16 @@ public class RxParser
         if (addr == OscAddress.Main.Fader)
         {
             _model.Main.Fader = Convert.ToSingle(args[0]);
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 
         if (addr == OscAddress.Main.Mute)
         {
             _model.Main.Mute = Convert.ToInt32(args[0]) == 0;
-            _model.RaiseStateChanged(addr);
+            _model.MarkInitProgress(addr);
+
             return true;
         }
 

@@ -1,7 +1,5 @@
-﻿using Eggbox.Helpers;
-using Eggbox.Models;
+﻿using Eggbox.Models;
 using Eggbox.Osc;
-using OscCore;
 using Color = Eggbox.Models.Color;
 
 namespace Eggbox.Services;
@@ -10,23 +8,13 @@ public class Mixer
 {
     private readonly MixerModel _model;
     private readonly MixerIO _io;
-    private readonly TrafficLogger _traffic;
 
     public Mixer(
         MixerModel model,
-        MixerIO io,
-        TrafficLogger traffic)
+        MixerIO io)
     {
         _model = model;
         _io = io;
-        _traffic = traffic;
-
-        _io.MessageSent += OnSent;
-    }
-
-    private void OnSent(OscMessage msg, DateTime t)
-    {
-        _traffic.AddTx(msg);
     }
 
     public async Task ConnectAsync(MixerInfo info)
@@ -76,22 +64,70 @@ public class Mixer
     
     public async Task InitAsync()
     {
+        var addresses = new List<string>();
+
         var chCount = _model.Info.ChannelCount;
         var busCount = _model.Info.BusCount;
 
-        var tasks = new List<Task>();
+        // Channels
+        for (var ch = 1; ch <= chCount; ch++)
+        {
+            addresses.AddRange(new[]
+            {
+                OscAddress.Channel.Fader.Build(ch),
+                OscAddress.Channel.Mute.Build(ch),
+                OscAddress.Channel.Gain.Build(ch),
+                OscAddress.Channel.Color.Build(ch),
+                OscAddress.Channel.Name.Build(ch)
+            });
+        }
 
-        for (int ch = 1; ch <= chCount; ch++)
-            tasks.Add(Channel(ch).RequestRefreshAsync());
+        // Busses
+        for (var bus = 1; bus <= busCount; bus++)
+        {
+            addresses.AddRange(new[]
+            {
+                OscAddress.Bus.Fader.Build(bus),
+                OscAddress.Bus.Mute.Build(bus),
+                OscAddress.Bus.Name.Build(bus),
+                OscAddress.Bus.Color.Build(bus)
+            });
+        }
 
-        for (int bus = 1; bus <= busCount; bus++)
-            tasks.Add(Bus(bus).RequestRefreshAsync());
+        // FX (1 & 2)
+        for (var fx = 1; fx <= 2; fx++)
+        {
+            addresses.AddRange(new[]
+            {
+                OscAddress.Fx.Fader.Build(fx),
+                OscAddress.Fx.Mute.Build(fx)
+            });
+        }
 
-        tasks.Add(Fx(1).RequestRefreshAsync());
-        tasks.Add(Fx(2).RequestRefreshAsync());
-        tasks.Add(Main().RequestRefreshAsync());
+        // LR Main
+        addresses.AddRange(new[]
+        {
+            OscAddress.Main.Fader,
+            OscAddress.Main.Mute
+        });
 
-        await Task.WhenAll(tasks);
+        // Mark all as expected
+        _model.InitExpected = addresses.ToHashSet();
+        _model.InitCompleted = new();
+
+        // Now send them all
+        foreach (var addr in addresses)
+        {
+            _ = _io.SendMessage(addr);
+        }
+        
+        await Task.Delay(1500);
+        
+        foreach (var addr in _model.InitExpected)
+        {
+            if (!_model.InitCompleted.Contains(addr))
+                _model.InitCompleted.Add(addr);
+        }
     }
 
     public ChannelControl Channel(int index) => new(_io, index);
