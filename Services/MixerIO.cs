@@ -5,9 +5,9 @@ using OscCore;
 
 namespace Eggbox.Services;
 
-public sealed class UDPService : IDisposable
+public sealed class MixerIO : IAsyncDisposable
 {
-    private readonly ILogger<UDPService> _logger;
+    private readonly ILogger<MixerIO> _logger;
     private UdpClient? _client;
     private RxParser _parser;
     private TrafficLogger _traffic;
@@ -22,7 +22,7 @@ public sealed class UDPService : IDisposable
 
     private const int DefaultLocalPort = 10025;
 
-    public UDPService(ILogger<UDPService> logger, RxParser parser, TrafficLogger traffic)
+    public MixerIO(ILogger<MixerIO> logger, RxParser parser, TrafficLogger traffic)
     {
         _logger = logger;
         _parser = parser;
@@ -42,12 +42,12 @@ public sealed class UDPService : IDisposable
         _cts = new CancellationTokenSource();
         _ = StartReceivingAsync(_cts.Token);
 
-        _ = SendAsync(new OscMessage("/xremote"));
-        _ = SendAsync(new OscMessage("/xinfo"));
+        _ = SendMessage("/xremote");
+        _ = SendMessage("/xinfo");
 
         _subscriptionTimer = new Timer(_ =>
         {
-            _ = SendAsync(new OscMessage("/xremote"));
+            _ = SendMessage("/xremote");
         }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
 
         await Task.CompletedTask;
@@ -62,7 +62,6 @@ public sealed class UDPService : IDisposable
         var data = packet.ToByteArray();
         var sentAt = DateTime.UtcNow;
 
-        _logger.LogInformation("➡️ Sending OSC: {Address}", msg.Address);
         await _client.SendAsync(data, data.Length, _remoteEndPoint).ConfigureAwait(false);
 
         MessageSent?.Invoke(msg, sentAt);
@@ -84,7 +83,6 @@ public sealed class UDPService : IDisposable
 
                 if (packet is OscMessage msg)
                 {
-                    _logger.LogInformation("✅ Received OSC: {Address}", msg.Address);
                     MessageReceived?.Invoke(msg, rxTime);
                     bool handled = _parser.ApplyOscMessage(msg,
                         out var parseStart,
@@ -117,9 +115,9 @@ public sealed class UDPService : IDisposable
         await Task.CompletedTask;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        _ = DisconnectAsync();
+        await DisconnectAsync();
     }
     
     public Task SendMessage(string address, object? value = null)

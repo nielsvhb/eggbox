@@ -9,12 +9,12 @@ namespace Eggbox.Services;
 public class Mixer
 {
     private readonly MixerModel _model;
-    private readonly UDPService _io;
+    private readonly MixerIO _io;
     private readonly TrafficLogger _traffic;
 
     public Mixer(
         MixerModel model,
-        UDPService io,
+        MixerIO io,
         TrafficLogger traffic)
     {
         _model = model;
@@ -110,10 +110,10 @@ public class Mixer
 
 public class ChannelControl
 {
-    private readonly UDPService _io;
+    private readonly MixerIO _io;
     private readonly int _index;
 
-    public ChannelControl(UDPService io, int index)
+    public ChannelControl(MixerIO io, int index)
     {
         _io = io;
         _index = index;
@@ -159,10 +159,10 @@ public class ChannelControl
 
 public class BusControl
 {
-    private readonly UDPService _io;
+    private readonly MixerIO _io;
     private readonly int _bus;
 
-    public BusControl(UDPService io, int bus)
+    public BusControl(MixerIO io, int bus)
     {
         _io = io;
         _bus = bus;
@@ -191,9 +191,9 @@ public class BusControl
 
 public class MainControl
 {
-    private readonly UDPService _io;
+    private readonly MixerIO _io;
 
-    public MainControl(UDPService io, MixerModel model)
+    public MainControl(MixerIO io, MixerModel model)
     {
         _io = io;
     }
@@ -213,10 +213,10 @@ public class MainControl
 
 public class FxControl
 {
-    private readonly UDPService _io;
+    private readonly MixerIO _io;
     private readonly int _index;
 
-    public FxControl(UDPService io, int index)
+    public FxControl(MixerIO io, int index)
     {
         _io = io;
         _index = index;

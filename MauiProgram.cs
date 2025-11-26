@@ -31,7 +31,7 @@ public static class MauiProgram
         
         builder.Services.AddSingleton<MixerModel>();
         builder.Services.AddSingleton<RxParser>();
-        builder.Services.AddSingleton<UDPService>();              
+        builder.Services.AddSingleton<MixerIO>();              
         builder.Services.AddSingleton<TrafficLogger>();
         builder.Services.AddSingleton<BroadcastScanner>(); 
         builder.Services.AddSingleton<Mixer>();
