@@ -20,7 +20,7 @@ public class BroadcastScanner
         _logger = logger;
     }
 
-    public async Task<List<MixerInfo>> ScanAsync(int timeoutMs = 2000)
+    public async Task<List<MixerInfo>> ScanAsync(int timeoutMs = 3000)
     {
         var mixers = new List<MixerInfo>();
 
