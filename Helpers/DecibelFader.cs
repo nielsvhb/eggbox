@@ -1,7 +1,11 @@
-﻿namespace Eggbox.Helpers;
+﻿using System.Globalization;
+
+namespace Eggbox.Helpers;
 
 public readonly struct DecibelFader
 {
+    private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+
     public double Db { get; }
 
     public DecibelFader(double db)
@@ -10,7 +14,7 @@ public readonly struct DecibelFader
     }
     
     public override string ToString()
-        => $"{Db:0.#} dB";
+        => Db.ToString("0.#", Invariant);
     
     public double ToLinear()
     {
