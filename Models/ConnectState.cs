@@ -3,11 +3,9 @@
 public enum ConnectState
 {
     Idle,
+    NoWifi,
     Connecting,
-    Connected,
-    ScanRequired,
-    MixersFound,
     NoMixerFound,
-    WifiMismatch,
-    ManualEntry
+    MixersFound,
+    Connected
 }

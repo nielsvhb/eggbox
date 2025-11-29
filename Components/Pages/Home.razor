@@ -18,9 +18,15 @@
                     <LoadingSpinner />
                 </div>
             }
-            else if (_state == ConnectState.Connected)
+            else if (_state == ConnectState.NoWifi)
             {
-                <p class="text-center">Connected to mixer!</p>
+                <p class="text-center text-red-400">
+                    Your device is not connected to a Wi-Fi network.
+                </p>
+                <p class="text-center">
+                    Make sure you're on the same Wi-Fi network and the mixer is turned on.
+                </p>
+                <button @onclick="ScanMixers" class="btn w-full mt-6">Try again</button>
             }
             else if (_state == ConnectState.NoMixerFound)
             {
@@ -37,13 +43,6 @@
                         <MixerCard MixerInfo="mixer" OnSelected="ConnectToMixer" />
                     }
                 </div>
-            }
-            else if (_state == ConnectState.WifiMismatch)
-            {
-                <p class="text-center text-red-400">
-                    Your device is not on the same Wi-Fi network as the mixer.
-                </p>
-                <button @onclick="ScanMixers" class="btn w-full mt-6">Try again</button>
             }
         </article>
     </div>
@@ -62,6 +61,13 @@
     {
         _state = ConnectState.Connecting;
         StateHasChanged();
+        
+        if (!WifiService.IsOnWifi())
+        {
+            _state = ConnectState.NoWifi;
+            StateHasChanged();
+            return;
+        }
 
         _foundMixers = await Scanner.ScanAsync();
         _state = _foundMixers.Any() ? ConnectState.MixersFound : ConnectState.NoMixerFound;
