@@ -586,6 +586,9 @@
   .bg-primary {
     background-color: #ee3967;
   }
+  .bg-primary\/30 {
+    background-color: color-mix(in oklab, #ee3967 30%, transparent);
+  }
   .bg-white {
     background-color: #fff;
   }
@@ -857,6 +860,13 @@
     &:hover {
       @media (hover: hover) {
         background-color: oklch(86.9% 0.022 252.894);
+      }
+    }
+  }
+  .hover\:bg-primary\/40 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(in oklab, #ee3967 40%, transparent);
       }
     }
   }

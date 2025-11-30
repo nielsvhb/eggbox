@@ -13,8 +13,8 @@
         };
 
         const onMove = (e) => {
-            if (!dragging) return;    // 🔥 niet aan het draggen → NIET blocken
-            e.preventDefault();       // 🔥 wel draggen → block scroll
+            if (!dragging) return;   
+            e.preventDefault();
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             const percent = getPercent(clientY);
             dotnet.invokeMethodAsync("OnDrag", percent);
@@ -30,7 +30,7 @@
 
         const startDrag = (e) => {
             dragging = true;
-            e.preventDefault();  // alleen hier OK, want op THUMB
+            e.preventDefault();
 
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             const percent = getPercent(clientY);
@@ -43,7 +43,6 @@
             window.addEventListener("touchend", endDrag);
         };
 
-        // 🔥 ALLEEN de thumb activeert drag
         thumb.addEventListener("mousedown", startDrag);
         thumb.addEventListener("touchstart", startDrag, { passive: false });
     }

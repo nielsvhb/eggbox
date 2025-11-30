@@ -15,7 +15,7 @@
     <style>
         .scrollbar-custom {
             scrollbar-width: thin;
-            scrollbar-color: #d1d5db transparent;
+            scrollbar-color: #a7adb6 transparent;
         }
             
     </style>
@@ -60,9 +60,19 @@
                         
                         <div class="text-[10px] text-gray-700 mt-2 mb-1">@ch.Fader.ToString()</div>
     
-                        <button class="w-full px-1 py-1.5 rounded transition-colors bg-gray-200 text-gray-600 hover:bg-gray-300">
-                               <i class="fad fa-volume-high"></i>
+                        <button @onclick="() => ToggleMute(ch, !ch.Muted)"
+                                class="
+                                    w-full px-1 py-1.5 rounded transition
+                                    flex items-center justify-center
+                                    border
+                        
+                                    @(ch.Muted
+                                        ? "bg-primary/30 border-primary text-primary hover:bg-primary/40"
+                                        : "bg-gray-200 border-gray-300 text-gray-600 hover:bg-gray-300")
+                                ">
+                            <i class="@(ch.Muted ? "fad fa-volume-xmark" : "fad fa-volume-high")"></i>
                         </button>
+
                     </article>
                 }
             </div>
