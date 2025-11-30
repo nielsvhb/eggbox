@@ -35,7 +35,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<TrafficLogger>();
         builder.Services.AddSingleton<BroadcastScanner>(); 
         builder.Services.AddSingleton<Mixer>();
-
+ 
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
         {
             var ex = e.ExceptionObject as Exception;

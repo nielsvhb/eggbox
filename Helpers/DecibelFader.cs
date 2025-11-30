@@ -1,10 +1,19 @@
-﻿using System.Globalization;
-
-namespace Eggbox.Helpers;
-
-public readonly struct DecibelFader
+﻿public readonly struct DecibelFader
 {
-    private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+    private const double MinDb = -90;
+    private const double MaxDb = 10;
+    private static readonly (double db, double lin)[] Map =
+    {
+        (-90, 0.000),
+        (-50, 0.125),
+        (-30, 0.250),
+        (-20, 0.375),
+        (-10, 0.500),
+        (-5,  0.625),
+        (0,   0.750),
+        (5,   0.875),
+        (10,  1.000)
+    };
 
     public double Db { get; }
 
@@ -12,46 +21,52 @@ public readonly struct DecibelFader
     {
         Db = Math.Clamp(db, -90, 10);
     }
-    
-    public override string ToString()
-        => Db.ToString("0.#", Invariant);
-    
+
     public double ToLinear()
     {
-        if (Db <= -90) return 0;
+        // boundaries
+        if (Db <= MinDb) return 0;
+        if (Db >= MaxDb) return 1;
 
-        if (Db < -30)
-            return (Db + 90.0) / 300.0;
+        // find surrounding points
+        for (var i = 0; i < Map.Length - 1; i++)
+        {
+            var (db1, lin1) = Map[i];
+            var (db2, lin2) = Map[i + 1];
 
-        if (Db < -10)
-            return ((Db + 30.0) / 36.36) + 0.20;
+            if (Db >= db1 && Db <= db2)
+            {
+                var t = (Db - db1) / (db2 - db1);
+                return lin1 + t * (lin2 - lin1);
+            }
+        }
 
-        if (Db <= 10)
-            return ((Db + 10.0) / 80.0) + 0.75;
-
-        return 1.0;
+        return 0; // unreachable
     }
 
-
-    public static DecibelFader FromLinear(double lin)
+    public static DecibelFader FromLinear(double linear)
     {
-        if (lin <= 0.0)
-            return -90; // mute
-    
-        if (lin < 0.20)
-            return lin * 300.0 - 90.0;      // -90 → -30
-    
-        if (lin < 0.75)
-            return (lin - 0.20) * 36.36 - 30.0; // -30 → -10
-    
-        if (lin <= 1.0)
-            return (lin - 0.75) * 80.0 - 10.0;  // -10 → +10
-    
-        return 10.0;
+        linear = Math.Clamp(linear, 0, 1);
+
+        // find surrounding points
+        for (var i = 0; i < Map.Length - 1; i++)
+        {
+            var (db1, lin1) = Map[i];
+            var (db2, lin2) = Map[i + 1];
+
+            if (linear >= lin1 && linear <= lin2)
+            {
+                var t = (linear - lin1) / (lin2 - lin1);
+                return new DecibelFader(db1 + t * (db2 - db1));
+            }
+        }
+
+        return new DecibelFader(-90); // fallback
     }
-
-
-    public static implicit operator DecibelFader(double db) => new (db);
-
+    
+    public override string ToString()
+        => Db <= MinDb ? "-∞" : Db.ToString("0.#");
+    
+    public static implicit operator DecibelFader(double db) => new(db);
     public static implicit operator double(DecibelFader d) => d.Db;
 }

@@ -4,6 +4,7 @@
 @using Optional
 @using Color = Eggbox.Models.Color
 @using Eggbox.Helpers
+@using Optional.Collections
 
 @inject Mixer Mixer
 @inject MixerModel Model
@@ -20,17 +21,22 @@
             
     </style>
 
-    <div class="flex justify-between items-center">
+    <div class="">
+        <label for="" class="text-xs font-medium text-gray-500">Select mix</label>
         <div class="flex items-center gap-2">
-            <select @bind="_selectedOutput">
-                <option value="0">Main LR</option>
+           <div class="w-3 h-3 rounded-full"
+                style="background-color:@Model.Busses.FirstOrNone(b => b.Index == SelectedOutput).Map(b => b.Color.HexOpaque).ValueOr("#ccc")"></div>
+       
+           <select @bind="SelectedOutput"
+                   class="px-3 py-1.5 rounded border border-gray-300 bg-white shadow-sm text-sm">
+               <option value="0">Main LR</option>
+               @foreach (var b in Model.Busses)
+               {
+                   <option value="@b.Index">@b.Name</option>
+               }
+           </select>
+       </div>
 
-                @foreach (var b in Model.Busses)
-                {
-                    <option value="@b.Index">Bus @b.Index (@b.Name)</option>
-                }
-            </select>
-        </div>
     </div>
 
     @if (_loading)
@@ -89,6 +95,20 @@
     private int _selectedOutput = 0; // 0 = Main LR
     private List<ChannelVm> _channels = new();
 
+    private int SelectedOutput
+    {
+        get => _selectedOutput;
+        set
+        {
+            if (_selectedOutput != value)
+            {
+                _selectedOutput = value;
+                BuildVm();             
+                InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
     protected override void OnInitialized()
     {
         Model.StateChanged += _ =>
@@ -107,11 +127,11 @@
         {
             var fader = _selectedOutput == 0
                 ? ch.Fader            
-                : ch.Sends.TryGetValue(_selectedOutput, out var s) ? s.Level : 0f;
+                : ch.Sends.TryGetValue(ch.Index, out var s) ? s.Level : 0d;
 
             var mute = _selectedOutput == 0
                 ? ch.Mute
-                : ch.Sends.TryGetValue(_selectedOutput, out var s2) && s2.Mute;
+                : ch.Sends.TryGetValue(ch.Index, out var s2) && s2.Mute;
 
             return new ChannelVm
             {
