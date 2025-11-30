@@ -58,6 +58,7 @@ public class Channel
     public Option<Color> Color { get; set; }
 
     public Dictionary<int, ChannelSend> Sends { get; set; } = new();
+    public bool Mute { get; set; }
 
     public ChannelSend GetOrCreateSend(int bus)
     {
@@ -76,18 +77,11 @@ public class Channel
         get => GetOrCreateSend(MainBusIndex).Level;
         set => GetOrCreateSend(MainBusIndex).Level = value;
     }
-
-    public bool MainMute
-    {
-        get => GetOrCreateSend(MainBusIndex).Mute;
-        set => GetOrCreateSend(MainBusIndex).Mute = value;
-    }
 }
 
 public class ChannelSend
 {
     public DecibelFader Level { get; set; }
-    public bool Mute { get; set; }
 }
 
 

@@ -3,7 +3,6 @@
 @using Eggbox.Models
 @using Optional
 @using Color = Eggbox.Models.Color
-@using Eggbox.Helpers
 @using Optional.Collections
 
 @inject Mixer Mixer
@@ -126,14 +125,13 @@
         _channels = Model.Channels.Select(ch =>
         {
             var fader = ch.Sends.TryGetValue(_selectedOutput, out var s) ? s.Level : new DecibelFader(0d);
-            var mute = ch.Sends.TryGetValue(_selectedOutput, out var s2) && s2.Mute;
 
             return new ChannelVm
             {
                 Index = ch.Index,
                 Name = ch.Name,
                 Fader = fader,
-                Muted = mute,
+                Muted = ch.Mute,
                 Color = ch.Color
             };
         }).ToList();
@@ -151,7 +149,7 @@
     {
         vm.Muted = muted;
 
-        await Mixer.Channel(vm.Index).SetSendMute(_selectedOutput, muted);
+        await Mixer.Channel(vm.Index).SetMute(muted);
     }
 
     private sealed class ChannelVm

@@ -53,7 +53,7 @@ public class RxParser
         // Mute
         if (OscAddress.Channel.Mute.Match(addr, out ch))
         {
-            _model.Channels[ch - 1].MainMute = Convert.ToInt32(args[0]) == 0;
+            _model.Channels[ch - 1].Mute = Convert.ToInt32(args[0]) == 0;
             _model.MarkInitProgress(addr);
 
             return true;
@@ -98,17 +98,6 @@ public class RxParser
 
             var send = _model.Channels[ch - 1].GetOrCreateSend(bus);
             send.Level = db;
-
-            _model.MarkInitProgress(addr);
-
-            return true;
-        }
-
-        // Send Mute
-        if (OscAddress.Channel.SendMute.Match(addr, out ch, out bus))
-        {
-            var send = _model.Channels[ch - 1].GetOrCreateSend(bus);
-            send.Mute = Convert.ToInt32(args[0]) == 0;
 
             _model.MarkInitProgress(addr);
 

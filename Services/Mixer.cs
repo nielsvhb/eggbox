@@ -85,8 +85,7 @@ public class Mixer
             {
                 addresses.AddRange(new[]
                 {
-                    OscAddress.Channel.SendLevel.Build(ch, bus),
-                    OscAddress.Channel.SendMute.Build(ch, bus),
+                    OscAddress.Channel.SendLevel.Build(ch, bus)
                 });
             }
         }
@@ -164,12 +163,12 @@ public class ChannelControl
         => _io.SendMessage(OscAddress.Channel.Color.Build(_index), color.MappedValue);
     public Task SetName(string name)
         => _io.SendMessage(OscAddress.Channel.Name.Build(_index), name);
+    public Task SetMute(bool mute)
+        => _io.SendMessage(OscAddress.Channel.Mute.Build(_index), mute ? 0 : 1);
 
     public Task SetSendLevel(int bus, DecibelFader db)
         => _io.SendMessage(OscAddress.Channel.SendLevel.Build(_index, bus), db);
    
-    public Task SetSendMute(int bus, bool mute)
-        => _io.SendMessage(OscAddress.Channel.SendMute.Build(_index, bus), mute ? 0 : 1);
 }
 
 

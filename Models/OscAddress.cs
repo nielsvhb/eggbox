@@ -11,7 +11,6 @@ public static class OscAddress
         public static readonly OscPattern Name     = new("/ch/{0:D2}/config/name");
 
         public static readonly OscPattern SendLevel = new("/ch/{0:D2}/mix/{1:D2}/level");
-        public static readonly OscPattern SendMute  = new("/ch/{0:D2}/mix/{1:D2}/on");
     }
 
     public static class Bus
