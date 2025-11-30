@@ -44,7 +44,7 @@ public class RxParser
             var lin = Convert.ToSingle(args[0]);
             var db = DecibelFader.FromLinear(lin);
 
-            _model.Channels[ch - 1].Fader = db;
+            _model.Channels[ch - 1].MainFader = db;
             _model.MarkInitProgress(addr);
 
             return true;
@@ -53,7 +53,7 @@ public class RxParser
         // Mute
         if (OscAddress.Channel.Mute.Match(addr, out ch))
         {
-            _model.Channels[ch - 1].Mute = Convert.ToInt32(args[0]) == 0;
+            _model.Channels[ch - 1].MainMute = Convert.ToInt32(args[0]) == 0;
             _model.MarkInitProgress(addr);
 
             return true;

@@ -51,8 +51,8 @@ public class Channel
 {
     public int Index { get; set; }
     public string Name { get; set; } = "";
-    public DecibelFader Fader { get; set; }
-    public bool Mute { get; set; }
+    public DecibelFader MainFader { get; set; }
+    public bool MainMute { get; set; }
     public DecibelGain Gain { get; set; }
     public Option<Color> Color { get; set; }
     public Dictionary<int, ChannelSend> Sends { get; set; } = new();

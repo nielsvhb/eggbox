@@ -80,6 +80,15 @@ public class Mixer
                 OscAddress.Channel.Color.Build(ch),
                 OscAddress.Channel.Name.Build(ch)
             });
+
+            for (var bus = 1; bus <= busCount; bus++)
+            {
+                addresses.AddRange(new[]
+                {
+                    OscAddress.Channel.SendLevel.Build(ch, bus),
+                    OscAddress.Channel.SendMute.Build(ch, bus),
+                });
+            }
         }
 
         // Busses

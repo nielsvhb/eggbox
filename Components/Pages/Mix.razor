@@ -126,12 +126,12 @@
         _channels = Model.Channels.Select(ch =>
         {
             var fader = _selectedOutput == 0
-                ? ch.Fader            
-                : ch.Sends.TryGetValue(ch.Index, out var s) ? s.Level : 0d;
+                ? ch.MainFader            
+                : ch.Sends.TryGetValue(_selectedOutput, out var s) ? s.Level : 0d;
 
             var mute = _selectedOutput == 0
-                ? ch.Mute
-                : ch.Sends.TryGetValue(ch.Index, out var s2) && s2.Mute;
+                ? ch.MainMute
+                : ch.Sends.TryGetValue(_selectedOutput, out var s2) && s2.Mute;
 
             return new ChannelVm
             {
