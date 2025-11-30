@@ -58,3 +58,13 @@
         padding-left: env(safe-area-inset-left);
     }
 }
+
+.fader-root {
+    touch-action: none; /* voorkomt browser-gestures */
+    user-select: none;
+}
+
+.fader-thumb {
+    touch-action: none;
+}
+

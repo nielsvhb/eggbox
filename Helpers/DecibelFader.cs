@@ -10,7 +10,7 @@ public readonly struct DecibelFader
 
     public DecibelFader(double db)
     {
-        Db = Math.Clamp(db, -90, 0);
+        Db = Math.Clamp(db, -90, 10);
     }
     
     public override string ToString()
@@ -18,35 +18,38 @@ public readonly struct DecibelFader
     
     public double ToLinear()
     {
-        if (Db <= -90) return 0.0;
+        if (Db <= -90) return 0;
 
         if (Db < -30)
             return (Db + 90.0) / 300.0;
 
         if (Db < -10)
-            return 0.20 + (Db + 30.0) / 80.0;
+            return ((Db + 30.0) / 36.36) + 0.20;
 
-        if (Db < 0)
-            return 0.75 + (Db + 10.0) / 13.3;
+        if (Db <= 10)
+            return ((Db + 10.0) / 80.0) + 0.75;
 
         return 1.0;
     }
 
+
     public static DecibelFader FromLinear(double lin)
     {
-        if (lin <= 0.0) return -90.0;
-
+        if (lin <= 0.0)
+            return -90; // mute
+    
         if (lin < 0.20)
-            return lin * 300.0 - 90.0;
-
+            return lin * 300.0 - 90.0;      // -90 → -30
+    
         if (lin < 0.75)
-            return (lin - 0.20) * 80.0 - 30.0;
-
-        if (lin < 1.0)
-            return (lin - 0.75) * 13.3 - 10.0;
-
-        return 0.0;
+            return (lin - 0.20) * 36.36 - 30.0; // -30 → -10
+    
+        if (lin <= 1.0)
+            return (lin - 0.75) * 80.0 - 10.0;  // -10 → +10
+    
+        return 10.0;
     }
+
 
     public static implicit operator DecibelFader(double db) => new (db);
 

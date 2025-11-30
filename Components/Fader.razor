@@ -1,0 +1,93 @@
+﻿@using Eggbox.Helpers
+@using System.Globalization
+@inject IJSRuntime JS
+
+<div class="relative flex items-start gap-1 select-none my-1">
+    <!-- MARKS -->
+    <div class="relative h-[380px] w-4 text-[8px] text-gray-500 text-right pr-1">
+     @foreach (var mark in Marks)
+     {
+         <div class="absolute right-0 translate-y-1/2"
+              style="bottom:@mark.Position%">
+             @mark.Label
+         </div>
+     }
+    </div>
+
+    <!-- SLIDER ROOT -->
+    <div class="fader-root relative h-[380px] w-4"
+         @ref="_rootRef">
+
+        <!-- TRACK -->
+        <div class="absolute left-1/2 -translate-x-1/2 w-[4px] h-full bg-gray-300 rounded-full"></div>
+
+        <!-- RANGE -->
+        <div class="fader-range absolute left-1/2 -translate-x-1/2 w-[4px] bg-primary rounded-full"
+             style="height:@RangeHeightPercent%; bottom:0"></div>
+
+        <!-- THUMB -->
+        <div class="fader-thumb absolute left-1/2 -translate-x-1/2 w-[12px] h-[12px] 
+                    bg-white border-2 border-primary rounded-full shadow 
+                    translate-y-1/2"
+             style="bottom:@ThumbBottomPercent%">
+        </div>
+
+    </div>
+</div>
+
+@code {
+    [Parameter] public DecibelFader Value { get; set; }
+    [Parameter] public EventCallback<DecibelFader> ValueChanged { get; set; }
+
+    private ElementReference _rootRef;
+
+    private double Linear => Value.ToLinear();
+    private string ThumbBottomPercent =>
+        (Linear * 100).ToString("0.###", CultureInfo.InvariantCulture);
+
+    private string RangeHeightPercent =>
+        (Linear * 100).ToString("0.###", CultureInfo.InvariantCulture);
+
+    private record Mark(string Label, double Db);
+
+    private Mark[] DbMarks = new Mark[]
+    {
+        new("+10",  10),
+        new("+5",    5),
+        new("0",   0),
+        new("-5",   -5),
+        new("-10", -10),
+        new("-20", -20),
+        new("-30", -30),
+        new("-50", -50),
+        new("-∞",  -90),
+    };
+    
+    private IEnumerable<(string Label, string Position)> Marks =>
+        DbMarks.Select(m =>
+        {
+            var linear = new DecibelFader(m.Db).ToLinear(); // your audio taper
+            var percent = (linear * 100).ToString("0.##", CultureInfo.InvariantCulture);
+            return (m.Label, percent);
+        });
+
+    [JSInvokable]
+    public async Task OnDrag(double percent)
+    {
+        // JS geeft positie 0-100
+        var linear = percent / 100.0;
+        var f = DecibelFader.FromLinear(linear);
+
+        Value = f;
+        await ValueChanged.InvokeAsync(f);
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("fader.init", _rootRef, DotNetObjectReference.Create(this));
+        }
+    }
+}

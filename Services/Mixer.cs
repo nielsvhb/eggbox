@@ -176,8 +176,8 @@ public class ChannelControl
     public Task SetName(string name)
         => _io.SendMessage(OscAddress.Channel.Name.Build(_index), name);
 
-    public Task SetSendLevel(int bus, float value)
-        => _io.SendMessage(OscAddress.Channel.SendLevel.Build(_index, bus), value);
+    public Task SetSendLevel(int bus, DecibelFader db)
+        => _io.SendMessage(OscAddress.Channel.SendLevel.Build(_index, bus), db);
    
     public Task SetSendMute(int bus, bool mute)
         => _io.SendMessage(OscAddress.Channel.SendMute.Build(_index, bus), mute ? 0 : 1);

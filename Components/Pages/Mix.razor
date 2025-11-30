@@ -1,4 +1,4 @@
-﻿@attribute [Route(Routes.Dashboard)]
+﻿@attribute [Route(Routes.Mix)]
 @using Eggbox.Services
 @using Eggbox.Models
 @using Optional
@@ -9,25 +9,15 @@
 @inject MixerModel Model
 @inject NavigationManager Nav
 
-<PageTitle>Dashboard</PageTitle>
+<PageTitle>Mix</PageTitle>
 
-<div class="p-4 space-y-4">
+<div class="p-4">
     <style>
-        .fader-vertical {
-            writing-mode: bt-lr;
-            -webkit-appearance: slider-vertical;
-            height: 180px;
-            width: 28px;
+        .scrollbar-custom {
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db transparent;
         }
-
-        .fader-card {
-            transition: background 0.2s ease, transform 0.1s ease;
-        }
-
-        .fader-card:hover {
-            background: rgba(255, 255, 255, 0.85);
-            transform: scale(1.02);
-        }
+            
     </style>
 
     <div class="flex justify-between items-center">
@@ -45,35 +35,37 @@
 
     @if (_loading)
     {
-        <div class="text-neutral-500 text-sm mt-3">Loading...</div>
+        <div class="text-center">
+            <LoadingSpinner></LoadingSpinner>
+        </div>
     }
     else if (_channels.Any())
     {
-        <div class="grid gap-2 grid-cols-8 mt-3">
-            @foreach (var ch in _channels)
-            {
-                <div class="rounded-lg border p-2 text-center bg-white/60 backdrop-blur fader-card">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-medium text-[9xs]">@ch.Name</span>
-
-                        <input type="checkbox"
-                               checked="@ch.Muted"
-                               @onchange="(e) => ToggleMute(ch, (bool)e.Value!)"
-                               title="Mute channel" />
-                    </div>
-
-                    <input type="range"
-                           min="0" max="1" step="0.01"
-                           value="@ch.Fader"
-                           class="fader-vertical"
-                           @oninput="(e) => OnFaderChanged(ch, Convert.ToSingle(e.Value))" />
-
-                    <div class="text-xs mt-1 text-center">@((int)(ch.Fader * 100))%</div>
-
-                    <div class="w-full h-1.5 mt-2 rounded-full"
-                         style="background:@ch.Color.Map(c => c.HexCode)"></div>
-                </div>
-            }
+        <div class="max-w-[1920px] mx-auto overflow-x-auto scrollbar-custom mt-3">
+            <div class="flex gap-1 min-w-max">
+                @foreach (var ch in _channels)
+                {
+                    <article class="flex flex-col items-center gap-1 p-1 rounded border border-gray-200 bg-gray-50 hover:border-gray-300 transition-colors">
+                        <button class="w-full relative group">
+                            <div class="transition-opacity group-hover:opacity-90 mx-auto">
+                                <div class="w-9 h-9 rounded flex items-center justify-center border" style="border-color: @ch.Color.Map(c => c.HexOpaque).ValueOr("#ccc"); background-color: @ch.Color.Map(c => c.HexTransparent).ValueOr("#ccc");">
+                                    <i class="fad fa-microphone text-gray-500"></i>
+                                </div>
+                            </div>
+                        </button>
+                        <div class="text-[9px] text-gray-600">CH @ch.Index.ToString("D2")</div>
+                        <div class="text-[8px] text-gray-800 text-center px-1 leading-tight max-w-[40px] line-clamp-2 h-[20px] flex items-center justify-center">@ch.Name</div>
+                       <Fader Value="ch.Fader"
+                              ValueChanged="(f) => OnFaderChanged(ch, f)" />
+                        
+                        <div class="text-[10px] text-gray-700 mt-2 mb-1">@ch.Fader.ToString() db</div>
+    
+                        <button class="w-full px-1 py-1.5 rounded transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200">
+                               <i class="fad fa-volume-high"></i>
+                        </button>
+                    </article>
+                }
+            </div>
         </div>
     }
     else
@@ -122,15 +114,16 @@
         }).ToList();
     }
 
-    private async Task OnFaderChanged(ChannelVm vm, float value)
+    private async Task OnFaderChanged(ChannelVm vm, DecibelFader f)
     {
-        vm.Fader = value;
-
+        vm.Fader = f;
+        
         if (_selectedOutput == 0)
-            await Mixer.Channel(vm.Index).SetFader(value);
+            await Mixer.Channel(vm.Index).SetFader(f);
         else
-            await Mixer.Channel(vm.Index).SetSendLevel(_selectedOutput, value);
+            await Mixer.Channel(vm.Index).SetSendLevel(_selectedOutput, f);
     }
+
 
     private async Task ToggleMute(ChannelVm vm, bool muted)
     {

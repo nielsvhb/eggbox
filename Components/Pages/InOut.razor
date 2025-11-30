@@ -25,7 +25,7 @@
                              @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")"
                       style="
                           background-color:@(ch.Color.Match(
-                                 c => c.HexCode,
+                                 c => c.HexOpaque,
                                  () => "transparent"
                           ));
                       "
@@ -42,7 +42,7 @@
               
                   <div class="w-9 h-9 rounded-tl-lg rounded-tr-4xl rounded-b-4xl border flex items-center justify-center cursor-pointer transition
                               @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")"
-                       style="background-color:@bus.Color.HexCode"
+                       style="background-color:@bus.Color.HexOpaque"
                        @onclick="() => SelectOutput(bus.Index)">
                       @bus.Short
                   </div>
@@ -85,7 +85,7 @@
                            @onclick="() => SetColorForInput(c)">
                           <div class="w-8 h-8 rounded-full flex items-center justify-center transition border border-gray-200
                                       @(isSelected ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110")"
-                               style="background-color:@c.HexCode">
+                               style="background-color:@c.HexOpaque">
                           </div>
                           <span class="text-[10px] text-gray-500">@c.ToString()</span>
                       </div>
