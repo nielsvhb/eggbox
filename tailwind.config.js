@@ -18,7 +18,7 @@ module.exports = {
             current: 'currentColor',
             black: colors.black,
             white: colors.white,
-            gray: colors.slate,
+            gray: colors.neutral,
             primary: "#ee3967",
             accent: "#E1CE55"
         },

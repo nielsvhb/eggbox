@@ -15,5 +15,5 @@ public class Color : IntMappedEnumeration<Color>
     public static readonly Color Yellow = new (nameof(Yellow), "YE", 3, "#ffdc4a", "#ffdc4a20");
     public static readonly Color Blue = new (nameof(Blue), "BL", 4, "#659df2", "#659df220");
     public static readonly Color Magenta = new(nameof(Magenta), "MG", 5, "#8f7fee", "#8f7fee20"); 
-    public static readonly Color White = new (nameof(White), "WH", 6, "#ffffff", "#ffffff");
+    public static readonly Color White = new (nameof(White), "WH", 6, "#ffffff", "#ffffff20");
 }

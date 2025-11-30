@@ -23,11 +23,11 @@
     <div class="">
         <label for="" class="text-xs font-medium text-gray-500">Select mix</label>
         <div class="flex items-center gap-2">
-           <div class="w-3 h-3 rounded-full"
+           <div class="w-3 h-3 rounded-full shrink-0"
                 style="background-color:@Model.Busses.FirstOrNone(b => b.Index == SelectedOutput).Map(b => b.Color.HexOpaque).ValueOr("#ccc")"></div>
        
            <select @bind="SelectedOutput"
-                   class="px-3 py-1.5 rounded border border-gray-300 bg-white shadow-sm text-sm">
+                   class="px-3 py-1.5 rounded border border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 shadow-sm text-sm w-full grow">
                <option value="0">Main LR</option>
                @foreach (var b in Model.Busses)
                {
@@ -50,20 +50,22 @@
             <div class="flex gap-1 min-w-max">
                 @foreach (var ch in _channels)
                 {
-                    <article class="flex flex-col items-center gap-1 p-1 rounded border border-gray-200 bg-gray-50 hover:border-gray-300 transition-colors">
+                    <article class="flex flex-col items-center gap-1 p-1 rounded border border-gray-200 bg-gray-50 dark:bg-gray-900 dark:border-gray-800 hover:border-gray-300 transition-colors">
                         <button class="w-full relative group">
                             <div class="transition-opacity group-hover:opacity-90 mx-auto">
-                                <div class="w-9 h-9 rounded flex items-center justify-center border" style="border-color: @ch.Color.Map(c => c.HexOpaque).ValueOr("#ccc"); background-color: @ch.Color.Map(c => c.HexTransparent).ValueOr("#ccc");">
-                                    <i class="fad fa-microphone text-gray-500"></i>
+                                <div class="w-9 h-9 rounded flex items-center justify-center border" 
+                                     style="border-color: @ch.Color.Map(c => c.HexOpaque).ValueOr("#ccc"); color: @ch.Color.Map(c => c.HexOpaque).ValueOr("#ccc");
+                                     background-color: @ch.Color.Map(c => c.HexTransparent).ValueOr("#ccc");">
+                                    <i class="fad fa-microphone"></i>
                                 </div>
                             </div>
                         </button>
-                        <div class="text-[9px] text-gray-600">CH @ch.Index.ToString("D2")</div>
-                        <div class="text-[8px] text-gray-800 text-center px-1 leading-tight max-w-[40px] font-semibold line-clamp-2 h-[20px] flex items-center justify-center">@ch.Name</div>
+                        <div class="text-[9px] text-gray-600 dark:text-gray-400">CH @ch.Index.ToString("D2")</div>
+                        <div class="text-[8px] text-gray-800 dark:text-gray-300 text-center px-1 leading-tight max-w-[40px] font-semibold line-clamp-2 h-[20px] flex items-center justify-center">@ch.Name</div>
                        <Fader Value="ch.Fader"
                               ValueChanged="(f) => OnFaderChanged(ch, f)" />
                         
-                        <div class="text-[10px] text-gray-700 mt-2 mb-1">@ch.Fader.ToString()</div>
+                        <div class="text-[10px] text-gray-700 dark:text-gray-300 mt-2 mb-1">@ch.Fader.ToString()</div>
     
                         <button @onclick="() => ToggleMute(ch, !ch.Muted)"
                                 class="
@@ -72,8 +74,8 @@
                                     border
                         
                                     @(ch.Muted
-                                        ? "bg-primary/30 border-primary text-primary hover:bg-primary/40"
-                                        : "bg-gray-200 border-gray-300 text-gray-600 hover:bg-gray-300")
+                                        ? "bg-primary/30 border-primary text-primary"
+                                        : "bg-gray-800 border-gray-700 text-gray-400")
                                 ">
                             <i class="@(ch.Muted ? "fad fa-volume-xmark" : "fad fa-volume-high")"></i>
                         </button>
@@ -91,7 +93,7 @@
 
 @code {
     private bool _loading = true;
-    private int _selectedOutput = 0; // 0 = Main LR
+    private int _selectedOutput = 1; // 0 = Main LR
     private List<ChannelVm> _channels = new();
 
     private int SelectedOutput

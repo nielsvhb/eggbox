@@ -7,10 +7,10 @@
 @inject ILogger<Home> Logger
 @inject NavigationManager NavManager
 
-<section class="h-full bg-primary text-gray-200">
+<section class="h-full text-gray-200">
     <div class="container flex flex-col h-full py-5">
         <article class="mt-32">
-            <h2 class="text-white text-xl font-semibold text-center mb-4">Connect to a mixer</h2>
+            <h2 class="text-white text-xl font-medium text-center mb-4">Connect to a mixer</h2>
 
             @if (_state == ConnectState.Connecting)
             {

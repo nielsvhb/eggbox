@@ -10,87 +10,114 @@
 <section class="h-full flex flex-col select-none">
 
     <div class="p-4 flex flex-col items-center">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700">
+        <h2 class="text-xl font-medium mb-4">
             Choose inputs / outputs
         </h2>
 
-        <div class="relative p-4 border border-gray-300 rounded-xl bg-gray-100">
-
+        <div class="
+            relative p-4 rounded-xl border bg-gray-100 border-gray-300
+            dark:bg-gray-900 dark:border-gray-700
+        ">
+            <!-- INPUTS -->
             <div class="grid grid-cols-8 gap-2">
-             @foreach (var ch in Model.Channels)
-             {
-                 var isActive = SelectedInput?.Index == ch.Index;
-             
-                 <div class="w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition
-                             @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")"
-                      style="
-                          background-color:@(ch.Color.Match(
-                                 c => c.HexOpaque,
-                                 () => "transparent"
-                          ));
-                      "
-                      @onclick="() => SelectInput(ch)">
-                     @ch.Index
-                 </div>
-             }
+                @foreach (var ch in Model.Channels)
+                {
+                    var isActive = SelectedInput?.Index == ch.Index;
+
+                    <div class="
+                        w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition text-gray-950
+                        border-gray-300 dark:border-gray-700
+                        @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")
+                    "
+                         style="background-color:@(ch.Color.Match(c => c.HexOpaque, () => "transparent"))"
+                         @onclick="() => SelectInput(ch)">
+                        @ch.Index
+                    </div>
+                }
             </div>
 
+            <!-- OUTPUTS -->
             <div class="flex gap-1 mt-4 justify-center">
-              @foreach (var bus in Outputs)
-              {
-                  var isActive = SelectedOutput?.Index == bus.Index;
-              
-                  <div class="w-9 h-9 rounded-tl-lg rounded-tr-4xl rounded-b-4xl border flex items-center justify-center cursor-pointer transition
-                              @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")"
-                       style="background-color:@bus.Color.HexOpaque"
-                       @onclick="() => SelectOutput(bus.Index)">
-                      @bus.Short
-                  </div>
-              }
-                <div class="w-9 h-9 rounded-full bg-gray-400"></div>
-                <div class="w-9 h-9 rounded-full bg-gray-400"></div>
+                @foreach (var bus in Outputs)
+                {
+                    var isActive = SelectedOutput?.Index == bus.Index;
+
+                    <div class="
+                        w-9 h-9 rounded-tl-lg rounded-tr-4xl rounded-b-4xl border flex items-center justify-center cursor-pointer transition text-gray-900
+                        border-gray-300 dark:border-gray-600
+                        @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")
+                    "
+                         style="background-color:@bus.Color.HexOpaque"
+                         @onclick="() => SelectOutput(bus.Index)">
+                        @bus.Short
+                    </div>
+                }
+
+                <div class="w-9 h-9 rounded-full bg-gray-400 dark:bg-gray-600"></div>
+                <div class="w-9 h-9 rounded-full bg-gray-400 dark:bg-gray-600"></div>
+
             </div>
         </div>
     </div>
-    <div class="border-t border-gray-300 p-6 bg-white shadow-inner">
 
+    <!-- EDIT PANEL -->
+    <div class="border-t dark:border-gray-800 p-6">
+
+        <!-- INPUT PANEL -->
         @if (SelectedInput != null)
         {
-            <h3 class="text-lg font-bold mb-3">Input CH @SelectedInput.Index</h3>
+            <h3 class="text-lg font-medium mb-3">
+                Input CH @SelectedInput.Index
+            </h3>
 
             <div class="mb-4">
-                <label class="block text-sm text-gray-600">Name</label>
-                <input class="w-full border border-gray-300 p-2 rounded"
-                       value="@SelectedInput.Name" @oninput="OnInputNameChanged" placeholder="Instrument name..." />
+                <label class="block text-sm text-gray-600 dark:text-gray-300">Name</label>
+                <input class="
+                        w-full border p-2 rounded
+                        border-gray-300 bg-white text-gray-900
+                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100
+                    "
+                       value="@SelectedInput.Name"
+                       @oninput="OnInputNameChanged"
+                       placeholder="Instrument name..." />
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm text-gray-600">Color</label>
+                <label class="block text-sm text-gray-600 dark:text-gray-300">Color</label>
 
-              <div class="flex items-center gap-3 mt-1">
-              
-                  <div class="flex flex-col items-center gap-1 cursor-pointer"
-                       @onclick="() => SetColorForInput(null)">
-                      <div class="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center">
-                          <span class="text-xs text-gray-500">×</span>
-                      </div>
-                      <span class="text-[10px] text-gray-500">None</span>
-                  </div>
-              
-                  @foreach (var c in Color.Enumerators)
-                  {
-                      var isSelected = SelectedInput?.Color?.MappedValue == c.MappedValue;
-              
-                      <div class="flex flex-col items-center gap-1 cursor-pointer"
-                           @onclick="() => SetColorForInput(c)">
-                          <div class="w-8 h-8 rounded-full flex items-center justify-center transition border border-gray-200
-                                      @(isSelected ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110")"
-                               style="background-color:@c.HexOpaque">
-                          </div>
-                          <span class="text-[10px] text-gray-500">@c.ToString()</span>
-                      </div>
-                  }
-              </div>
+                <div class="flex items-center gap-3 mt-1">
+
+                    <!-- No Color -->
+                    <div class="flex flex-col items-center gap-1 cursor-pointer"
+                         @onclick="() => SetColorForInput(null)">
+                        <div class="
+                            w-8 h-8 rounded-full border flex items-center justify-center
+                            border-gray-400 dark:border-gray-500
+                        ">
+                            <span class="text-xs text-gray-500 dark:text-gray-300">×</span>
+                        </div>
+                        <span class="text-[10px] text-gray-500 dark:text-gray-300">None</span>
+                    </div>
+
+                    <!-- COLORS -->
+                    @foreach (var c in Color.Enumerators)
+                    {
+                        var isSelected = SelectedInput?.Color?.MappedValue == c.MappedValue;
+
+                        <div class="flex flex-col items-center gap-1 cursor-pointer"
+                             @onclick="() => SetColorForInput(c)">
+                            <div class="
+                                w-8 h-8 rounded-full flex items-center justify-center transition border
+                                border-gray-200 dark:border-gray-600
+                                @(isSelected ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110")
+                                dark:ring-offset-gray-900
+                            "
+                                 style="background-color:@c.HexOpaque">
+                            </div>
+                            <span class="text-[10px] text-gray-500 dark:text-gray-300">@c.ToString()</span>
+                        </div>
+                    }
+                </div>
             </div>
 
             <button class="btn btn-primary mt-4" @onclick="OpenGainModal">
@@ -98,30 +125,36 @@
             </button>
         }
 
-
         <!-- OUTPUT PANEL -->
         @if (SelectedOutput != null)
         {
-            <h3 class="text-lg font-bold mb-3">Output: @SelectedOutput.ShortLabel</h3>
+            <h3 class="text-lg font-bold mb-3 text-gray-800 dark:text-gray-100">
+                Output: @SelectedOutput.ShortLabel
+            </h3>
 
             <div class="mb-4">
-                <label class="block text-sm text-gray-600">Name</label>
-                <input class="w-full border border-gray-300 p-2 rounded"
-                       @bind="SelectedOutput.Name" placeholder="Person name..." />
+                <label class="block text-sm text-gray-600 dark:text-gray-300">Name</label>
+                <input class="
+                        w-full border p-2 rounded
+                        border-gray-300 bg-white text-gray-900
+                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100
+                    "
+                       @bind="SelectedOutput.Name"
+                       placeholder="Person name..." />
             </div>
         }
 
     </div>
-
-
 
     <!-- GAIN MODAL -->
     @if (ShowGainModal)
     {
         <div class="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
 
-            <div class="bg-white rounded-xl p-6 w-80 shadow-xl animate-fadein">
-
+            <div class="
+                rounded-xl p-6 w-80 shadow-xl animate-fadein bg-white
+                dark:bg-gray-800 dark:text-gray-100 dark:shadow-2xl
+            ">
                 <h2 class="text-lg font-semibold mb-4">
                     Gain — CH @SelectedInput?.Index
                 </h2>
@@ -134,7 +167,7 @@
                        @oninput="OnGainChanged"
                        class="w-full" />
 
-                <p class="mt-2 text-center text-gray-700">
+                <p class="mt-2 text-center text-gray-700 dark:text-gray-300">
                     @GainValue
                 </p>
 
@@ -146,6 +179,7 @@
     }
 
 </section>
+
 
 
 @code {

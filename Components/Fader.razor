@@ -3,7 +3,7 @@
 @inject IJSRuntime JS
 
 <div class="relative flex items-start gap-1 select-none my-1">
-    <div class="relative h-[380px] w-4 text-[8px] text-gray-500 text-right pr-1">
+    <div class="relative h-[350px] w-4 text-[8px] text-gray-500 dark:text-gray-400 text-right pr-1">
      @foreach (var mark in Marks)
      {
          <div class="absolute right-0 translate-y-1/2"
@@ -13,10 +13,10 @@
      }
     </div>
 
-    <div class="fader-root relative h-[380px] w-4" @ref="_rootRef">
+    <div class="fader-root relative h-[350px] w-4" @ref="_rootRef">
 
         <!-- TRACK -->
-        <div class="absolute left-1/2 -translate-x-1/2 w-[4px] h-full bg-gray-300 rounded-full"></div>
+        <div class="absolute left-1/2 -translate-x-1/2 w-[4px] h-full bg-gray-950 rounded-full"></div>
 
         <!-- RANGE -->
         <div class="fader-range absolute left-1/2 -translate-x-1/2 w-[4px] bg-primary rounded-full"
@@ -24,7 +24,7 @@
 
         <!-- THUMB -->
         <div class="fader-thumb absolute left-1/2 -translate-x-1/2 w-[12px] h-[12px] 
-                    bg-white border-2 border-primary rounded-full shadow 
+                    bg-black border-2 border-primary rounded-full shadow 
                     translate-y-1/2"
              style="bottom:@ThumbBottomPercent%">
         </div>

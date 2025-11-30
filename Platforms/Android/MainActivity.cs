@@ -2,6 +2,7 @@
 using Android.Content.PM;
 using Android.OS;
 
+
 namespace Eggbox;
 
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true,
@@ -9,4 +10,14 @@ namespace Eggbox;
                            ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 public class MainActivity : MauiAppCompatActivity
 {
+    protected override void OnCreate(Bundle savedInstanceState)
+    {
+        base.OnCreate(savedInstanceState);
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
+        {
+            Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#262626"));
+        }
+    }
+
 }

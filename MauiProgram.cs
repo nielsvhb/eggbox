@@ -35,13 +35,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<TrafficLogger>();
         builder.Services.AddSingleton<BroadcastScanner>(); 
         builder.Services.AddSingleton<Mixer>();
- 
+
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
         {
             var ex = e.ExceptionObject as Exception;
-            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"❌ Unhandled Exception: {ex?.Message}");
-            Console.ResetColor();
         };
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
