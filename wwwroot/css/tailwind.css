@@ -574,6 +574,9 @@
   .bg-gray-100 {
     background-color: oklch(96.8% 0.007 247.896);
   }
+  .bg-gray-200 {
+    background-color: oklch(92.9% 0.013 255.508);
+  }
   .bg-gray-300 {
     background-color: oklch(86.9% 0.022 252.894);
   }
@@ -847,6 +850,13 @@
     &:hover {
       @media (hover: hover) {
         background-color: oklch(92.9% 0.013 255.508);
+      }
+    }
+  }
+  .hover\:bg-gray-300 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: oklch(86.9% 0.022 252.894);
       }
     }
   }

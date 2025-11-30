@@ -3,7 +3,6 @@
 @inject IJSRuntime JS
 
 <div class="relative flex items-start gap-1 select-none my-1">
-    <!-- MARKS -->
     <div class="relative h-[380px] w-4 text-[8px] text-gray-500 text-right pr-1">
      @foreach (var mark in Marks)
      {
@@ -14,9 +13,7 @@
      }
     </div>
 
-    <!-- SLIDER ROOT -->
-    <div class="fader-root relative h-[380px] w-4"
-         @ref="_rootRef">
+    <div class="fader-root relative h-[380px] w-4" @ref="_rootRef">
 
         <!-- TRACK -->
         <div class="absolute left-1/2 -translate-x-1/2 w-[4px] h-full bg-gray-300 rounded-full"></div>
@@ -41,6 +38,11 @@
 
     private ElementReference _rootRef;
 
+    private readonly TimeSpan _throttleInterval = TimeSpan.FromMilliseconds(50); // 20 Hz
+    private DateTime _lastCallbackTime = DateTime.MinValue;
+    private DecibelFader? _pendingValue;
+    private CancellationTokenSource? _flushCts;
+
     private double Linear => Value.ToLinear();
     private string ThumbBottomPercent =>
         (Linear * 100).ToString("0.###", CultureInfo.InvariantCulture);
@@ -50,23 +52,23 @@
 
     private record Mark(string Label, double Db);
 
-    private Mark[] DbMarks = new Mark[]
+    private Mark[] DbMarks = new[]
     {
-        new("+10",  10),
-        new("+5",    5),
-        new("0",   0),
-        new("-5",   -5),
-        new("-10", -10),
-        new("-20", -20),
-        new("-30", -30),
-        new("-50", -50),
-        new("-∞",  -90),
+        new Mark("+10",  10),
+        new Mark("+5",    5),
+        new Mark("0",     0),
+        new Mark("-5",   -5),
+        new Mark("-10", -10),
+        new Mark("-20", -20),
+        new Mark("-30", -30),
+        new Mark("-50", -50),
+        new Mark("-∞",  -90),
     };
     
     private IEnumerable<(string Label, string Position)> Marks =>
         DbMarks.Select(m =>
         {
-            var linear = new DecibelFader(m.Db).ToLinear(); // your audio taper
+            var linear = new DecibelFader(m.Db).ToLinear();
             var percent = (linear * 100).ToString("0.##", CultureInfo.InvariantCulture);
             return (m.Label, percent);
         });
@@ -74,13 +76,48 @@
     [JSInvokable]
     public async Task OnDrag(double percent)
     {
-        // JS geeft positie 0-100
         var linear = percent / 100.0;
-        var f = DecibelFader.FromLinear(linear);
+        var newFader = DecibelFader.FromLinear(linear);
 
-        Value = f;
-        await ValueChanged.InvokeAsync(f);
+        Value = newFader;
         StateHasChanged();
+
+        await ThrottledCallback(newFader);
+    }
+
+    private async Task ThrottledCallback(DecibelFader f)
+    {
+        var now = DateTime.UtcNow;
+
+        if (now - _lastCallbackTime < _throttleInterval)
+        {
+            _pendingValue = f;
+            await ScheduleFinalFlush(f);
+            return;
+        }
+
+        _lastCallbackTime = now;
+        _pendingValue = null;
+
+        await ValueChanged.InvokeAsync(f);
+
+        await ScheduleFinalFlush(f);
+    }
+
+    private async Task ScheduleFinalFlush(DecibelFader finalValue)
+    {
+        _flushCts?.Cancel();
+        _flushCts = new CancellationTokenSource();
+
+        try
+        {
+            await Task.Delay(120, _flushCts.Token); // user probably stopped moving
+
+            // send pending buffered value
+            await ValueChanged.InvokeAsync(_pendingValue ?? finalValue);
+
+        }
+        catch { }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
