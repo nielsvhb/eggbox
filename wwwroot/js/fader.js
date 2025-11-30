@@ -2,6 +2,9 @@
     init(root, dotnet) {
         let dragging = false;
 
+        const thumb = root.querySelector(".fader-thumb");
+        if (!thumb) return;
+
         const getPercent = (clientY) => {
             const rect = root.getBoundingClientRect();
             const y = clientY - rect.top;
@@ -10,35 +13,38 @@
         };
 
         const onMove = (e) => {
-            if (!dragging) return;
-
+            if (!dragging) return;    // 🔥 niet aan het draggen → NIET blocken
+            e.preventDefault();       // 🔥 wel draggen → block scroll
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             const percent = getPercent(clientY);
             dotnet.invokeMethodAsync("OnDrag", percent);
         };
 
-        const end = () => {
+        const endDrag = () => {
             dragging = false;
             window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", end);
+            window.removeEventListener("mouseup", endDrag);
             window.removeEventListener("touchmove", onMove);
-            window.removeEventListener("touchend", end);
+            window.removeEventListener("touchend", endDrag);
         };
 
-        root.addEventListener("mousedown", (e) => {
+        const startDrag = (e) => {
             dragging = true;
-            onMove(e);
+            e.preventDefault();  // alleen hier OK, want op THUMB
+
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const percent = getPercent(clientY);
+            dotnet.invokeMethodAsync("OnDrag", percent);
 
             window.addEventListener("mousemove", onMove);
-            window.addEventListener("mouseup", end);
-        });
-
-        root.addEventListener("touchstart", (e) => {
-            dragging = true;
-            onMove(e);
+            window.addEventListener("mouseup", endDrag);
 
             window.addEventListener("touchmove", onMove, { passive: false });
-            window.addEventListener("touchend", end);
-        });
+            window.addEventListener("touchend", endDrag);
+        };
+
+        // 🔥 ALLEEN de thumb activeert drag
+        thumb.addEventListener("mousedown", startDrag);
+        thumb.addEventListener("touchstart", startDrag, { passive: false });
     }
 };

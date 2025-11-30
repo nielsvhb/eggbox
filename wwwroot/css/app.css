@@ -60,7 +60,6 @@
 }
 
 .fader-root {
-    touch-action: none; /* voorkomt browser-gestures */
     user-select: none;
 }
 
