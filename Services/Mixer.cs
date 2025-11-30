@@ -42,12 +42,12 @@ public class Mixer
         {
             case "xr18":
                 _model.Info.ChannelCount = 18;
-                _model.Info.BusCount = 6;
+                _model.Info.BusCount = 6; //8??
                 break;
             case "xr16":
             default:
                 _model.Info.ChannelCount = 16;
-                _model.Info.BusCount = 4;
+                _model.Info.BusCount = 6;
                 break;
         }
 
@@ -163,17 +163,6 @@ public class ChannelControl
         _io = io;
         _index = index;
     }
-
-    /*
-     * Volume of Channel to Main Mix
-     */
-    public Task SetFader(DecibelFader db)
-    {
-        return _io.SendMessage(OscAddress.Channel.Fader.Build(_index), db);
-    }
-
-    public Task SetMute(bool muted)
-        => _io.SendMessage(OscAddress.Channel.Mute.Build(_index), muted ? 0 : 1);
 
     public Task SetGain(DecibelGain db)
     {

@@ -49,14 +49,16 @@ public class MixerInfo
 
 public class Channel
 {
+    public const int MainBusIndex = 0;
+
     public int Index { get; set; }
     public string Name { get; set; } = "";
-    public DecibelFader MainFader { get; set; }
-    public bool MainMute { get; set; }
+
     public DecibelGain Gain { get; set; }
     public Option<Color> Color { get; set; }
+
     public Dictionary<int, ChannelSend> Sends { get; set; } = new();
-    
+
     public ChannelSend GetOrCreateSend(int bus)
     {
         if (!Sends.TryGetValue(bus, out var send))
@@ -66,6 +68,19 @@ public class Channel
         }
 
         return send;
+    }
+
+    // Convenience wrappers voor main send
+    public DecibelFader MainFader
+    {
+        get => GetOrCreateSend(MainBusIndex).Level;
+        set => GetOrCreateSend(MainBusIndex).Level = value;
+    }
+
+    public bool MainMute
+    {
+        get => GetOrCreateSend(MainBusIndex).Mute;
+        set => GetOrCreateSend(MainBusIndex).Mute = value;
     }
 }
 

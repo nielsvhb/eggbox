@@ -125,13 +125,8 @@
     {
         _channels = Model.Channels.Select(ch =>
         {
-            var fader = _selectedOutput == 0
-                ? ch.MainFader            
-                : ch.Sends.TryGetValue(_selectedOutput, out var s) ? s.Level : 0d;
-
-            var mute = _selectedOutput == 0
-                ? ch.MainMute
-                : ch.Sends.TryGetValue(_selectedOutput, out var s2) && s2.Mute;
+            var fader = ch.Sends.TryGetValue(_selectedOutput, out var s) ? s.Level : new DecibelFader(0d);
+            var mute = ch.Sends.TryGetValue(_selectedOutput, out var s2) && s2.Mute;
 
             return new ChannelVm
             {
@@ -148,10 +143,7 @@
     {
         vm.Fader = f;
         
-        if (_selectedOutput == 0)
-            await Mixer.Channel(vm.Index).SetFader(f);
-        else
-            await Mixer.Channel(vm.Index).SetSendLevel(_selectedOutput, f);
+        await Mixer.Channel(vm.Index).SetSendLevel(_selectedOutput, f);
     }
 
 
@@ -159,10 +151,7 @@
     {
         vm.Muted = muted;
 
-        if (_selectedOutput == 0)
-            await Mixer.Channel(vm.Index).SetMute(muted);
-        else
-            await Mixer.Channel(vm.Index).SetSendMute(_selectedOutput, muted);
+        await Mixer.Channel(vm.Index).SetSendMute(_selectedOutput, muted);
     }
 
     private sealed class ChannelVm
