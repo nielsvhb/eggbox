@@ -124,7 +124,6 @@ public class Mixer
         _model.InitExpected = addresses.ToHashSet();
         _model.InitCompleted = new();
 
-        // Now send them all
         foreach (var addr in addresses)
         {
             _ = _io.SendMessage(addr);
@@ -143,14 +142,6 @@ public class Mixer
     public BusControl Bus(int index) => new(_io, index);
     public FxControl Fx(int index) => new(_io, index);
     public MainControl Main() => new(_io, _model);
-
-    public async Task ReloadChannels()
-    {
-        for (int i = 1; i <= _model.Info.ChannelCount; i++)
-        {
-            await Channel(i).RequestRefreshAsync();
-        }
-    }
 }
 
 public class ChannelControl
@@ -179,15 +170,6 @@ public class ChannelControl
    
     public Task SetSendMute(int bus, bool mute)
         => _io.SendMessage(OscAddress.Channel.SendMute.Build(_index, bus), mute ? 0 : 1);
-
-    public Task RequestRefreshAsync()
-        => Task.WhenAll(
-            _io.SendMessage(OscAddress.Channel.Fader.Build(_index)),
-            _io.SendMessage(OscAddress.Channel.Mute.Build(_index)),
-            _io.SendMessage(OscAddress.Channel.Gain.Build(_index)),
-            _io.SendMessage(OscAddress.Channel.Color.Build(_index)),
-            _io.SendMessage(OscAddress.Channel.Name.Build(_index))
-        );
 }
 
 
@@ -213,14 +195,6 @@ public class BusControl
 
     public Task SetColor(Color color)
         => _io.SendMessage(OscAddress.Bus.Color.Build(_bus), color.MappedValue);
-
-    public Task RequestRefreshAsync()
-        => Task.WhenAll(
-            _io.SendMessage(OscAddress.Bus.Fader.Build(_bus)),
-            _io.SendMessage(OscAddress.Bus.Mute.Build(_bus)),
-            _io.SendMessage(OscAddress.Bus.Name.Build(_bus)),
-            _io.SendMessage(OscAddress.Bus.Color.Build(_bus))
-        );
 }
 
 public class MainControl
@@ -237,12 +211,6 @@ public class MainControl
 
     public Task SetMute(bool mute)
         => _io.SendMessage(OscAddress.Main.Mute, mute ? 0 : 1);
-
-    public Task RequestRefreshAsync()
-        => Task.WhenAll(
-            _io.SendMessage(OscAddress.Main.Fader),
-            _io.SendMessage(OscAddress.Main.Mute)
-        );
 }
 
 public class FxControl
@@ -261,12 +229,4 @@ public class FxControl
 
     public Task SetMute(bool mute)
         => _io.SendMessage(OscAddress.Fx.Mute.Build(_index), mute ? 0 : 1);
-
-    public Task RequestRefreshAsync()
-    {
-        return Task.WhenAll(
-                _io.SendMessage(OscAddress.Fx.Fader.Build(_index)),
-                _io.SendMessage(OscAddress.Fx.Mute.Build(_index))
-        );
-    }
 }
