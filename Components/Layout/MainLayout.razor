@@ -9,16 +9,14 @@
     @if (Mixer.State.IsConnected && !Model.IsInitialized)
     {
         <div class="
-            p-4 shadow-sm border-b h-screen w-screen flex flex-col items-center justify-center
-            bg-primary text-white
-            border-gray-300
-            dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700
+            p-4 shadow-sm h-screen w-screen flex flex-col items-center justify-center
+            dark:bg-gray-800 dark:text-gray-200
         ">
             <p class="text-sm opacity-90">
                 Loading mixer settings…
             </p>
 
-            <div class="text-center mt-16">
+            <div class="text-center mt-16 hue-rotate-180">
                 <LoadingSpinner />
             </div>
 
@@ -26,10 +24,10 @@
                 @($"{Model.InitCompleted.Count}/{Model.InitExpected.Count}")
             </p>
 
-            <div class="w-full bg-white/40 dark:bg-gray-700/60 h-3 rounded-xl mt-2">
+            <div class="w-full bg-gray-500/60 h-3 rounded-xl mt-2">
                 <div class="
                     h-3 rounded-xl transition-all duration-200
-                    bg-white
+                    bg-primary
                     dark:bg-gray-200
                 "
                 style="width:@($"{Model.InitProgress*100:F0}%")">
@@ -48,28 +46,28 @@
     @if (Mixer.State.IsConnected && Model.IsInitialized)
     {
         <nav class="flex justify-around items-center
-            bg-white text-gray-500 border-t dark:border-t-gray-700
+            bg-white text-gray-600 border-t border-t-gray-100 dark:border-t-gray-900
             dark:bg-gray-900 dark:text-gray-300
         ">
             <NavLink href="@Routes.InOut"
                 class="flex flex-col items-center gap-1 px-4 py-2"
                 ActiveClass="text-primary"
                 Match="NavLinkMatch.All">
-                <i class="fad fa-plug text-xl"></i>
+                <i class="fal fa-plug text-xl"></i>
                 <span class="text-xs">In/Out</span>
             </NavLink>
 
             <NavLink href="@Routes.Mix"
                 class="flex flex-col items-center gap-1 px-4 py-2"
                 ActiveClass="text-primary">
-                <i class="fad fa-square-sliders-vertical text-xl"></i>
+                <i class="fal fa-square-sliders-vertical text-xl"></i>
                 <span class="text-xs">Mix</span>
             </NavLink>
 
             <NavLink href="@Routes.OscMonitor"
                 class="flex flex-col items-center gap-1 px-4 py-2"
                 ActiveClass="text-primary">
-                <i class="fad fa-terminal text-xl"></i>
+                <i class="fal fa-terminal text-xl"></i>
                 <span class="text-xs">OSC</span>
             </NavLink>
         </nav>

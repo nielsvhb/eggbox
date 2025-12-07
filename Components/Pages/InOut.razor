@@ -9,29 +9,26 @@
 @inject MixerModel Model
 @inject NavigationManager Nav
 
-<section class="h-full flex flex-col select-none">
-
-    <div class="p-4 flex flex-col items-center">
+<div class="h-full flex flex-col select-none p-4">
+    <section class="flex flex-col items-center mb-4">
         <h2 class="text-xl font-medium mb-4">
             Choose inputs / outputs
         </h2>
 
-        <div class="
-            relative p-4 rounded-xl border bg-gray-100 border-gray-300
-            dark:bg-gray-900 dark:border-gray-700
-        ">
+        <div class="relative p-4 rounded-xl border bg-gray-50 border-gray-200
+            dark:bg-gray-900 dark:border-gray-700">
             <!-- INPUTS -->
-            <div class="grid grid-cols-8 gap-2">
+            <div class="grid grid-cols-8 gap-2 w-full">
                 @foreach (var ch in Model.Channels)
                 {
                     var isActive = SelectedInput?.Index == ch.Index;
 
                     <div class="
-                        w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition text-gray-950
-                        border-gray-300 dark:border-gray-700
-                        @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")
+                        size-8 rounded-full border flex items-center justify-center cursor-pointer transition text-gray-950
+                        border-gray-300 dark:border-gray-700 shadow-[1px_2px_#00000021_inset]
+                         @(isActive ? "border-primary ring-2 ring-primary/50" : "")
                     "
-                         style="background-color:@(ch.Color.Match(c => c.HexOpaque, () => "transparent"))"
+                         style="background-color:@(ch.Color.Match(c => c.HexOpaque, () => "#cbcbcb"))"
                          @onclick="() => SelectInput(ch)">
                         @ch.Index
                     </div>
@@ -45,9 +42,9 @@
                     var isActive = SelectedOutput?.Index == bus.Index;
 
                     <div class="
-                        w-9 h-9 rounded-tl-lg rounded-tr-4xl rounded-b-4xl border flex items-center justify-center cursor-pointer transition text-gray-900
-                        border-gray-300 dark:border-gray-600
-                        @(isActive ? "ring-2 ring-primary scale-110" : "hover:scale-110")
+                        size-8 rounded-tl-lg rounded-tr-4xl rounded-b-4xl border flex items-center justify-center cursor-pointer transition text-gray-900
+                        border-gray-300 dark:border-gray-600 shadow-[1px_2px_#00000021_inset]
+                        @(isActive ? "border-primary ring-2 ring-primary/50" : "")
                     "
                          style="background-color:@bus.Color.HexOpaque"
                          @onclick="() => SelectOutput(bus.Index)">
@@ -55,42 +52,36 @@
                     </div>
                 }
 
-                <div class="w-9 h-9 rounded-full bg-gray-400 dark:bg-gray-600"></div>
-                <div class="w-9 h-9 rounded-full bg-gray-400 dark:bg-gray-600"></div>
+                <div class="size-8 rounded-full bg-[#cbcbcb] dark:bg-gray-600"></div>
+                <div class="size-8 rounded-full bg-[#cbcbcb] dark:bg-gray-600"></div>
 
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- EDIT PANEL -->
-    <div class="border-t dark:border-gray-800 p-6">
+    
+    @if(SelectedInput != null || SelectedOutput != null) {
+        <section class="p-4 rounded-xl border bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700 space-y-4">
 
-        <!-- INPUT PANEL -->
         @if (SelectedInput != null)
         {
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="text-md font-medium text-gray-200">
+            <div class="mb-2">
+                <h3 class="text-md font-medium dark:text-gray-200">
                     Input CH @SelectedInput.Index
                 </h3>
-                <button class="btn btn-sm btn-primary" @onclick="OpenGainModal">
-                    Adjust Gain
-                </button>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-xs text-gray-600 dark:text-gray-300">Name</label>
-                <input class="
-                        w-full border p-2 rounded
-                        border-gray-300 bg-white text-gray-900
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100
-                    "
+            <div>
+                <label class="block text-xs text-gray-700 dark:text-gray-300">Name</label>
+                <input type="text" class=""
                        value="@SelectedInput.Name"
                        @oninput="OnInputNameChanged"
                        placeholder="Instrument name..." />
             </div>
 
-            <div class="mb-4">
-                <label class="block text-xs text-gray-600 dark:text-gray-300">Color</label>
+            <div>
+                <label class="block text-xs text-gray-700 dark:text-gray-300">Color</label>
 
                 <div class="flex items-center gap-3 mt-1">
 
@@ -98,7 +89,7 @@
                     <div class="flex flex-col items-center gap-1 cursor-pointer"
                          @onclick="() => SetColorForInput(null)">
                         <div class="
-                            w-8 h-8 rounded-full border flex items-center justify-center
+                            size-8 rounded-full border flex items-center justify-center
                             border-gray-400 dark:border-gray-500
                         ">
                             <span class="text-xs text-gray-500 dark:text-gray-300">×</span>
@@ -116,7 +107,7 @@
                             <div class="
                                 w-8 h-8 rounded-full flex items-center justify-center transition border
                                 border-gray-200 dark:border-gray-600
-                                @(isSelected ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110")
+                                @(isSelected ? "border-primary ring-2 ring-primary/50" : "")
                                 dark:ring-offset-gray-900
                             "
                                  style="background-color:@c.HexOpaque">
@@ -128,20 +119,28 @@
             </div>
             
             <div>       
-                <label class="block text-xs text-gray-600 dark:text-gray-300">Icon</label>
-                <div class="flex gap-2 flex-wrap">
+                <label class="block text-xs text-gray-700 dark:text-gray-300">Icon</label>
+                <div class="flex gap-1.5 flex-wrap mt-1">
 
                     @foreach (var icon in Icon.Enumerators)
                     {
                         var isSel = SelectedInput?.Icon.Contains(icon) ?? false;
 
-                        <div class="p-2 size-10 rounded cursor-pointer text-white transition border bg-gray-700 hover:bg-gray-300
-                                        @(isSel ? "border-white" : "border-transparent")"
+                        <div class="p-1.5 size-9 flex items-center justify-center rounded cursor-pointer text-gray-700 dark:text-white transition border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 hover:bg-gray-300
+                                        @(isSel ? "border-primary ring-2 ring-primary/50" : "")"
                              @onclick="() => SetIcon(icon)">
-                            <i class="@icon.ToString() fad text-xl"></i>
+                            <i class="@icon.ToString() fal text-xl"></i>
                         </div>
                     }
                 </div>
+            </div>
+            
+            <div>
+                <label class="block text-xs text-gray-700 dark:text-gray-300">Gain</label>
+                
+                <button class="border border-dashed bg-gray-100 border-gray-200 dark:bg-gray-800 dark:border-gray-700 py-1 rounded w-full text-gray-700 dark:text-gray-500 font-normal text-sm" @onclick="OpenGainModal">
+                    Click to set gain
+                </button>
             </div>
         }
 
@@ -164,8 +163,8 @@
             </div>
         }
 
-    </div>
-
+    </section>
+    }
     <!-- GAIN MODAL -->
     @if (ShowGainModal)
     {
@@ -198,7 +197,7 @@
         </div>
     }
 
-</section>
+</div>
 
 
 

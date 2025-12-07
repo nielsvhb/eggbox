@@ -1,6 +1,9 @@
 ﻿using Android.App;
 using Android.Content.PM;
+using Android.Content.Res;
 using Android.OS;
+using Android.Views;
+using Microsoft.Maui.Controls.PlatformConfiguration;
 
 
 namespace Eggbox;
@@ -16,7 +19,34 @@ public class MainActivity : MauiAppCompatActivity
 
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
         {
-            Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#262626"));
+            var window = Platform.CurrentActivity.Window;
+            var uiMode = Resources.Configuration.UiMode & UiMode.NightMask;
+            var isDark = uiMode == UiMode.NightYes;
+            
+            var statusColor = isDark
+                ? Android.Graphics.Color.ParseColor("#262626")
+                : Android.Graphics.Color.ParseColor("#ffffff");
+            var navColor = isDark
+                ? Android.Graphics.Color.ParseColor("#171717")
+                : Android.Graphics.Color.ParseColor("#ffffff");
+            
+            window.SetStatusBarColor(statusColor);
+            window.SetNavigationBarColor(navColor);
+            
+            var flags = window.DecorView.SystemUiVisibility;
+
+            if (isDark)
+            {
+                flags &= ~(StatusBarVisibility)SystemUiFlags.LightStatusBar;
+                flags &= ~(StatusBarVisibility)SystemUiFlags.LightNavigationBar;
+            }
+            else
+            {
+                flags |= (StatusBarVisibility)(SystemUiFlags.LightStatusBar | SystemUiFlags.LightNavigationBar);
+            }
+
+
+            window.DecorView.SystemUiVisibility = flags;
         }
     }
 
