@@ -6,6 +6,10 @@
     @apply px-5 py-2 bg-white rounded-lg transition text-gray-600 font-semibold disabled:opacity-40 disabled:cursor-not-allowed;
 }
 
+.btn.btn-sm {
+    @apply px-3 py-1.5 text-sm rounded
+}
+
 .btn.btn-primary {
     @apply text-white bg-primary hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-primary
 }

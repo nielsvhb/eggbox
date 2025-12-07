@@ -3,6 +3,8 @@
 @using Eggbox.Services
 @using Color = Eggbox.Models.Color
 @using Eggbox.Helpers
+@using Optional
+@using Icon = Eggbox.Models.Icon
 @inject Mixer Mixer
 @inject MixerModel Model
 @inject NavigationManager Nav
@@ -66,12 +68,17 @@
         <!-- INPUT PANEL -->
         @if (SelectedInput != null)
         {
-            <h3 class="text-lg font-medium mb-3">
-                Input CH @SelectedInput.Index
-            </h3>
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-md font-medium text-gray-200">
+                    Input CH @SelectedInput.Index
+                </h3>
+                <button class="btn btn-sm btn-primary" @onclick="OpenGainModal">
+                    Adjust Gain
+                </button>
+            </div>
 
             <div class="mb-4">
-                <label class="block text-sm text-gray-600 dark:text-gray-300">Name</label>
+                <label class="block text-xs text-gray-600 dark:text-gray-300">Name</label>
                 <input class="
                         w-full border p-2 rounded
                         border-gray-300 bg-white text-gray-900
@@ -83,7 +90,7 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm text-gray-600 dark:text-gray-300">Color</label>
+                <label class="block text-xs text-gray-600 dark:text-gray-300">Color</label>
 
                 <div class="flex items-center gap-3 mt-1">
 
@@ -119,10 +126,23 @@
                     }
                 </div>
             </div>
+            
+            <div>       
+                <label class="block text-xs text-gray-600 dark:text-gray-300">Icon</label>
+                <div class="flex gap-2 flex-wrap">
 
-            <button class="btn btn-primary mt-4" @onclick="OpenGainModal">
-                Adjust Gain
-            </button>
+                    @foreach (var icon in Icon.Enumerators)
+                    {
+                        var isSel = SelectedInput?.Icon.Contains(icon) ?? false;
+
+                        <div class="p-2 size-10 rounded cursor-pointer text-white transition border bg-gray-700 hover:bg-gray-300
+                                        @(isSel ? "border-white" : "border-transparent")"
+                             @onclick="() => SetIcon(icon)">
+                            <i class="@icon.ToString() fad text-xl"></i>
+                        </div>
+                    }
+                </div>
+            </div>
         }
 
         <!-- OUTPUT PANEL -->
@@ -203,11 +223,13 @@
     void SelectInput(Channel channel)
     {
         SelectedOutput = null;
+
         SelectedInput = new SocketInfo
         {
             Index = channel.Index,
             Name = channel.Name,
-            Color = channel.Color.Match(c => c, () => null)
+            Icon = channel.Icon,
+            Color = channel.Color.Match(c => c, () => null),
         };
 
         GainValue = channel.Gain;
@@ -257,6 +279,30 @@
         ShowGainModal = false;
     }
 
+    async Task SetIcon(Icon icon)
+    {
+        if (SelectedInput == null)
+            return;
+
+        SelectedInput.Icon = icon.SomeNotNull();
+
+        var encoded = BuildEncodedName(SelectedInput.Name ?? "", SelectedInput.Icon);
+
+        await Mixer.Channel(SelectedInput.Index).SetName(encoded);
+
+        StateHasChanged();
+    }
+    
+    private static string BuildEncodedName(string name, Option<Icon> icon)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "";
+
+        name = name.Replace("_", ""); // underscore nooit toelaten
+
+        return icon.Map(i => $"{name}_{i.MappedValue}").ValueOr(name);
+    }
+
     async Task OnGainChanged(ChangeEventArgs e)
     {
         GainValue = Convert.ToSingle(e.Value); // dB
@@ -271,11 +317,13 @@
         if (SelectedInput == null)
             return;
 
-        var newName = e.Value?.ToString() ?? "";
+        var cleanName = (e.Value?.ToString() ?? "").Replace("_", "");
 
-        SelectedInput.Name = newName;
+        SelectedInput.Name = cleanName;
 
-        await Mixer.Channel(SelectedInput.Index).SetName(newName);
+        var encoded = BuildEncodedName(cleanName, SelectedInput.Icon);
+
+        await Mixer.Channel(SelectedInput.Index).SetName(encoded);
     }
 
     private void SyncSelectedInput()
@@ -306,6 +354,7 @@
     {
         public int Index { get; set; }
         public string? Name { get; set; }
+        public Option<Icon> Icon { get; set; }
         public Color? Color { get; set; }
         public string ShortLabel { get; set; } = "";
     }

@@ -56,6 +56,7 @@ public class Channel
 
     public DecibelGain Gain { get; set; }
     public Option<Color> Color { get; set; }
+    public Option<Icon> Icon { get; set; }
 
     public Dictionary<int, ChannelSend> Sends { get; set; } = new();
     public bool Mute { get; set; }

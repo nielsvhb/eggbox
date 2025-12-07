@@ -4,6 +4,7 @@
 @using Optional
 @using Color = Eggbox.Models.Color
 @using Optional.Collections
+@using Icon = Eggbox.Models.Icon
 
 @inject Mixer Mixer
 @inject MixerModel Model
@@ -56,7 +57,7 @@
                                 <div class="w-9 h-9 rounded flex items-center justify-center border" 
                                      style="border-color: @ch.Color.Map(c => c.HexOpaque).ValueOr("#ccc"); color: @ch.Color.Map(c => c.HexOpaque).ValueOr("#ccc");
                                      background-color: @ch.Color.Map(c => c.HexTransparent).ValueOr("#ccc");">
-                                    <i class="fad fa-microphone"></i>
+                                    <i class="fad @ch.Icon.Map(i => i.ToString()).ValueOr("")"></i>
                                 </div>
                             </div>
                         </button>
@@ -134,7 +135,8 @@
                 Name = ch.Name,
                 Fader = fader,
                 Muted = ch.Mute,
-                Color = ch.Color
+                Color = ch.Color,
+                Icon = ch.Icon
             };
         }).ToList();
     }
@@ -161,5 +163,6 @@
         public DecibelFader Fader { get; set; }
         public bool Muted { get; set; }
         public Option<Color> Color { get; set; }
+        public Option<Icon> Icon { get; set; }
     }
 }

@@ -26,14 +26,14 @@
                 <p class="text-center">
                     Make sure you're on the same Wi-Fi network and the mixer is turned on.
                 </p>
-                <button @onclick="ScanMixers" class="btn w-full mt-6">Try again</button>
+                <button @onclick="ScanMixers" class="btn btn-primary w-full mt-6">Try again</button>
             }
             else if (_state == ConnectState.NoMixerFound)
             {
                 <p class="text-center">
                     No mixers found. Make sure you're on the same Wi-Fi network and the mixer is turned on.
                 </p>
-                <button @onclick="ScanMixers" class="btn w-full mt-6">Try again</button>
+                <button @onclick="ScanMixers" class="btn btn-primary w-full mt-6">Try again</button>
             }
             else if (_state == ConnectState.MixersFound)
             {

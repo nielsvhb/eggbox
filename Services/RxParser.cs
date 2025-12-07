@@ -1,5 +1,4 @@
-﻿using Eggbox.Helpers;
-using Eggbox.Models;
+﻿using Eggbox.Models;
 using Eggbox.Osc;
 using OscCore;
 using Color = Eggbox.Models.Color;
@@ -84,9 +83,14 @@ public class RxParser
         // Name
         if (OscAddress.Channel.Name.Match(addr, out ch))
         {
-            _model.Channels[ch - 1].Name = Convert.ToString(args[0]) ?? "-";
-            _model.MarkInitProgress(addr);
+            var raw = Convert.ToString(args[0]) ?? "";
+            var (name, iconId) = SplitEncodedName(raw);
 
+            var channel = _model.Channels[ch - 1];
+            channel.Name = name;
+            channel.Icon = Icon.FromMappedValue(iconId);
+
+            _model.RaiseStateChanged(addr);
             return true;
         }
 
@@ -201,5 +205,17 @@ public class RxParser
         }
 
         return false;
+    }
+    
+    private static (string Name, int? IconId) SplitEncodedName(string encoded)
+    {
+        if (string.IsNullOrWhiteSpace(encoded))
+            return ("", null);
+
+        var parts = encoded.Split('_');
+
+        return parts.Length == 2
+            ? (parts[0], int.TryParse(parts[1], out var id) ? id : null)
+            : (encoded, null);
     }
 }
