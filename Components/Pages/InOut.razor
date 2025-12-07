@@ -5,16 +5,13 @@
 @using Eggbox.Helpers
 @using Optional
 @using Icon = Eggbox.Models.Icon
+@using Eggbox.Extensions
 @inject Mixer Mixer
 @inject MixerModel Model
 @inject NavigationManager Nav
 
 <div class="h-full flex flex-col select-none p-4">
     <section class="flex flex-col items-center mb-4">
-        <h2 class="text-xl font-medium mb-4">
-            Choose inputs / outputs
-        </h2>
-
         <div class="relative p-4 rounded-xl border bg-gray-50 border-gray-200
             dark:bg-gray-900 dark:border-gray-700">
             <!-- INPUTS -->
@@ -73,17 +70,72 @@
             </div>
 
             <div>
-                <label class="block text-xs text-gray-700 dark:text-gray-300">Name</label>
-                <input type="text" class=""
-                       value="@SelectedInput.Name"
-                       @oninput="OnInputNameChanged"
-                       placeholder="Instrument name..." />
+                <label class="block text-xs text-gray-700 dark:text-gray-300 mb-1">
+                    Name & Icon
+                </label>
+            
+                <div class="flex items-center gap-3">
+            
+                    <!-- ICON DROPDOWN BUTTON -->
+                    <div class="relative">
+            
+                        <button @onclick="ToggleIconDropdown"
+                                class="size-10 rounded-lg flex items-center justify-center cursor-pointer
+                                       bg-white dark:bg-gray-800
+                                       border border-gray-300 dark:border-gray-600
+                                       transition">
+            
+                            @if (SelectedInput?.Icon.HasValue ?? false)
+                            {
+                                <i class="@SelectedInput.Icon.Map(i => i.ToString()).ValueOr("") fal text-lg"></i>
+                            }
+                            else
+                            {
+                                <span class="flex flex-col">
+                                    <i class="fa-times fal text-xs text-gray-600"></i>
+                                    <span class="text-[10px] leading-3 text-gray-500 dark:text-gray-400">none</span>
+                                </span>
+                            }
+                        </button>
+            
+                        <!-- DROPDOWN PANEL -->
+                        @if (IconDropdownOpen)
+                        {
+                            <div class="absolute left-0 mt-2 p-2 w-56 rounded-lg z-40
+                                        bg-white dark:bg-gray-800
+                                        border border-gray-300 dark:border-gray-700
+                                        shadow-xl">
+                                <div class="flex gap-1 flex-wrap">
+                                      <div class="flex items-center bg-gray-50 p-2 cursor-pointer border border-gray-200 size-9 justify-center rounded"
+                                           @onclick="() => SelectIconFromDropdown(null)">
+                                          <i class="fa-times fal text-lg text-gray-600"></i>
+                                      </div>
+                                    <!-- ICON LIST -->
+                                    @foreach (var icon in Icon.Enumerators)
+                                    {
+                                        <div class="flex items-center p-1.5 cursor-pointer border border-gray-200 size-9 justify-center rounded"
+                                             @onclick="() => SelectIconFromDropdown(icon)">
+                                            <i class="@icon.ToString() fal text-lg"></i>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+            
+                    <!-- NAME INPUT -->
+                    <input type="text"
+                           value="@SelectedInput?.Name"
+                           @oninput="OnInputNameChanged"
+                           placeholder="Instrument name..." />
+                </div>
             </div>
+
 
             <div>
                 <label class="block text-xs text-gray-700 dark:text-gray-300">Color</label>
 
-                <div class="flex items-center gap-3 mt-1">
+                <div class="flex items-center gap-2.5 mt-1">
 
                     <!-- No Color -->
                     <div class="flex flex-col items-center gap-1 cursor-pointer"
@@ -118,27 +170,10 @@
                 </div>
             </div>
             
-            <div>       
-                <label class="block text-xs text-gray-700 dark:text-gray-300">Icon</label>
-                <div class="flex gap-1.5 flex-wrap mt-1">
-
-                    @foreach (var icon in Icon.Enumerators)
-                    {
-                        var isSel = SelectedInput?.Icon.Contains(icon) ?? false;
-
-                        <div class="p-1.5 size-9 flex items-center justify-center rounded cursor-pointer text-gray-700 dark:text-white transition border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 hover:bg-gray-300
-                                        @(isSel ? "border-primary ring-2 ring-primary/50" : "")"
-                             @onclick="() => SetIcon(icon)">
-                            <i class="@icon.ToString() fal text-xl"></i>
-                        </div>
-                    }
-                </div>
-            </div>
-            
             <div>
                 <label class="block text-xs text-gray-700 dark:text-gray-300">Gain</label>
                 
-                <button class="border border-dashed bg-gray-100 border-gray-200 dark:bg-gray-800 dark:border-gray-700 py-1 rounded w-full text-gray-700 dark:text-gray-500 font-normal text-sm" @onclick="OpenGainModal">
+                <button class="mt-1 border border-dashed bg-gray-100 border-gray-200 dark:bg-gray-800 dark:border-gray-700 py-1 rounded-lg w-full text-gray-700 dark:text-gray-500 font-normal text-sm" @onclick="OpenGainModal">
                     Click to set gain
                 </button>
             </div>
@@ -153,11 +188,8 @@
 
             <div class="mb-4">
                 <label class="block text-sm text-gray-600 dark:text-gray-300">Name</label>
-                <input class="
-                        w-full border p-2 rounded
-                        border-gray-300 bg-white text-gray-900
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100
-                    "
+                <input class=""
+                       type="text"
                        @bind="SelectedOutput.Name"
                        placeholder="Person name..." />
             </div>
@@ -208,6 +240,7 @@
     private bool ShowGainModal = false;
     private DecibelGain GainValue = 0;
     private string NameValue = "";
+    private bool IconDropdownOpen = false;
     
     private List<(int Index, string Short, Color Color)> Outputs => new()
     {
@@ -219,6 +252,24 @@
         (12, "R", Color.White)
     };
 
+    void ToggleIconDropdown() => IconDropdownOpen = !IconDropdownOpen;
+    void CloseIconDropdown() => IconDropdownOpen = false;
+
+    async Task SelectIconFromDropdown(Icon? icon)
+    {
+        IconDropdownOpen = false;
+
+        if (icon == null)
+        {
+            SelectedInput!.Icon = Option.None<Icon>();
+            var encoded = BuildEncodedName(SelectedInput?.Name ?? "", SelectedInput!.Icon);
+            await Mixer.Channel(SelectedInput!.Index).SetName(encoded);
+            StateHasChanged();
+            return;
+        }
+
+        await SetIcon(icon);
+    }
     void SelectInput(Channel channel)
     {
         SelectedOutput = null;

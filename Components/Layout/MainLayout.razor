@@ -50,23 +50,20 @@
             dark:bg-gray-900 dark:text-gray-300
         ">
             <NavLink href="@Routes.InOut"
-                class="flex flex-col items-center gap-1 px-4 py-2"
-                ActiveClass="text-primary"
+                  class="nav-link" ActiveClass="active"
                 Match="NavLinkMatch.All">
                 <i class="fal fa-plug text-xl"></i>
                 <span class="text-xs">In/Out</span>
             </NavLink>
 
             <NavLink href="@Routes.Mix"
-                class="flex flex-col items-center gap-1 px-4 py-2"
-                ActiveClass="text-primary">
+                   class="nav-link" ActiveClass="active">
                 <i class="fal fa-square-sliders-vertical text-xl"></i>
                 <span class="text-xs">Mix</span>
             </NavLink>
 
             <NavLink href="@Routes.OscMonitor"
-                class="flex flex-col items-center gap-1 px-4 py-2"
-                ActiveClass="text-primary">
+                class="nav-link" ActiveClass="active">
                 <i class="fal fa-terminal text-xl"></i>
                 <span class="text-xs">OSC</span>
             </NavLink>
