@@ -57,6 +57,9 @@
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)"/>
+        <MauiSplashScreen Include="wwwroot\images\logo.png">
+          <Color>#ee3967</Color>
+        </MauiSplashScreen>
     </ItemGroup>
 
     <ItemGroup>

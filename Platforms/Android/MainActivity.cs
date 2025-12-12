@@ -24,8 +24,8 @@ public class MainActivity : MauiAppCompatActivity
             var isDark = uiMode == UiMode.NightYes;
             
             var statusColor = isDark
-                ? Android.Graphics.Color.ParseColor("#262626")
-                : Android.Graphics.Color.ParseColor("#ffffff");
+                ? Android.Graphics.Color.ParseColor("#fbfafa")
+                : Android.Graphics.Color.ParseColor("#fbfafa");
             var navColor = isDark
                 ? Android.Graphics.Color.ParseColor("#171717")
                 : Android.Graphics.Color.ParseColor("#ffffff");

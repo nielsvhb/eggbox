@@ -8,32 +8,47 @@
 @inject NavigationManager NavManager
 
 <section class="h-full">
-    <div class="container flex flex-col h-full py-5">
-        <article class="mt-32">
-            <h2 class="text-xl font-medium text-center mb-4">Connect to a mixer</h2>
+    <div class="container flex flex-col h-full mt-16">
+        <article>
+            <h2 class="text-2xl text-primary-950 font-medium mb-2">Connect to a mixer</h2>
+            <p class="mb-6">
+                Connect your device to the EggBox Wi-Fi network, then select your mixer from the list below.
+            </p>
 
             @if (_state == ConnectState.Connecting)
             {
-                <div class="text-center mt-12">
+                <div class="mt-12">
                     <LoadingSpinner />
                 </div>
             }
             else if (_state == ConnectState.NoWifi)
             {
-                <p class="text-center">
+                <p>
                     Your device is not connected to a Wi-Fi network.
                 </p>
-                <p class="text-center">
+                <p>
                     Make sure you're on the same Wi-Fi network and the mixer is turned on.
                 </p>
                 <button @onclick="ScanMixers" class="btn btn-primary w-full mt-6">Try again</button>
             }
             else if (_state == ConnectState.NoMixerFound)
             {
-                <p class="text-center">
-                    No mixers found. Make sure you're on the same Wi-Fi network and the mixer is turned on.
-                </p>
-                <button @onclick="ScanMixers" class="btn btn-primary w-full mt-6">Try again</button>
+                <div class="rounded-md bg-primary-100 border border-primary-200 p-3 dark:bg-primary-900">
+                    <div class="flex">
+                        <div class="shrink-0 text-primary-700">
+                            <i class="fal fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="ml-2.5">
+                            <h3 class="mb-1.5 text-sm font-semibold text-primary-700 dark:text-primary-100">No mixers found</h3>
+                            <div class="text-sm text-primary-700 dark:text-primary-100/80">
+                                <p>Make sure you're on the same Wi-Fi network and the mixer is turned on.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button @onclick="ScanMixers" class="btn mt-6">
+                    <i class="fal fa-arrows-rotate mr-1"></i> Try again
+                </button>
             }
             else if (_state == ConnectState.MixersFound)
             {

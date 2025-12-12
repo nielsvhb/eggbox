@@ -135,17 +135,14 @@ public class RxParser
 
         if (OscAddress.Bus.Color.Match(addr, out bus))
         {
-            var colorId = Convert.ToInt32(args[0]);
-            var color = Color.FromMappedValue(colorId);
-            color.MatchSome(c =>
-            {
-                _model.Busses[bus - 1].Color = c;
-                _model.MarkInitProgress(addr);
+            // Ignore incoming mixer color.
+            // We enforce our own static color palette.
+            _model.Busses[bus - 1].Color = GetFixedBusColor(bus);
 
-            });
-          
+            _model.MarkInitProgress(addr);
             return true;
         }
+
 
         if (OscAddress.Bus.Name.Match(addr, out bus))
         {
@@ -158,6 +155,21 @@ public class RxParser
         return false;
     }
 
+    private static Color GetFixedBusColor(int busIndex)
+    {
+        return busIndex switch
+        {
+            1 => Color.Red,
+            2 => Color.Green,
+            3 => Color.Yellow,
+            4 => Color.Blue,
+            5 => Color.Magenta,
+            6 => Color.White,
+            _ => throw new NotImplementedException($"no color mapping for busIndex {busIndex}")
+        };
+    }
+
+        
     // ----------------------------
     // FX
     // ----------------------------

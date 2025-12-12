@@ -18,8 +18,21 @@ module.exports = {
             current: 'currentColor',
             black: colors.black,
             white: colors.white,
-            gray: colors.neutral,
-            primary: "#ee3967",
+            gray: colors.stone,
+            yellow: colors.yellow,
+            primary: {
+                50:  "#fef6f8",
+                100: "#fdecef",
+                200: "#fbd1da",
+                300: "#f7a7b8",
+                400: "#f26f8f",
+                500: "#ee3967",
+                600: "#c92c52",
+                700: "#9f203f",
+                800: "#73162d",
+                900: "#4b0d1d",
+                950: "#2a060f",
+            },
             accent: "#E1CE55"
         },
         extend: {
@@ -28,7 +41,7 @@ module.exports = {
             },
             fontFamily: {
                 manrope: ["Manrope", 'sans-serif'],
-            },
+            }
         },
     },
     plugins: [],

@@ -3,7 +3,7 @@
 
 
 .btn {
-    @apply px-5 py-2 bg-white rounded-lg transition text-gray-600 font-semibold disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex justify-center items-center gap-1.5 rounded-full text-sm/6 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 bg-gray-950 text-white hover:bg-gray-800 focus-visible:outline-gray-950 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-200 dark:focus-visible:outline-white px-4 py-2
 }
 
 .btn.btn-sm {
@@ -11,25 +11,30 @@
 }
 
 .btn.btn-primary {
-    @apply text-white bg-primary hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-primary
+    @apply text-white bg-primary-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-primary-500
 }
-
+.btn.btn-ghost {
+    @apply bg-primary-50 text-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-500
+}
 h1, h2, h3 {
-    @apply font-manrope;
+    @apply font-manrope
+}
+.badge {
+    @apply inline-flex items-center rounded-full bg-primary-100 px-2 py-1 text-xs font-medium text-primary-700 dark:bg-primary-400/10 dark:text-primary-400"
 }
 
 input[type="text"], select {
     @apply w-full border px-2.5 py-1.5 rounded-lg border-gray-300 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 outline-0
 }
 input[type="text"]:focus, select:focus {
-    @apply border-primary ring-2 ring-primary/50
+    @apply border-primary-500 ring-2 ring-primary-500/50
 }
 
 .nav-link {
-    @apply flex flex-col items-center gap-1 px-4 py-2 
+    @apply flex flex-col items-center gap-1 p-4
 }
 .nav-link.active {
-    @apply text-primary
+    @apply text-primary-500 font-medium
 }
 .nav-link.active i {
     font-weight: 900 !important; /* maakt elke FA icon solid */

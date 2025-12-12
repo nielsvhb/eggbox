@@ -15,42 +15,53 @@
         <div class="relative p-4 rounded-xl border bg-gray-50 border-gray-200
             dark:bg-gray-900 dark:border-gray-700">
             <!-- INPUTS -->
-            <div class="grid grid-cols-8 gap-2 w-full">
+            <div class="grid grid-cols-8 gap-1.5 w-full">
                 @foreach (var ch in Model.Channels)
                 {
                     var isActive = SelectedInput?.Index == ch.Index;
 
-                    <div class="
-                        size-8 rounded-full border flex items-center justify-center cursor-pointer transition text-gray-950
-                        border-gray-300 dark:border-gray-700 shadow-[1px_2px_#00000021_inset]
-                         @(isActive ? "border-primary ring-2 ring-primary/50" : "")
-                    "
-                         style="background-color:@(ch.Color.Match(c => c.HexOpaque, () => "#cbcbcb"))"
-                         @onclick="() => SelectInput(ch)">
-                        @ch.Index
+                    <div class="relative">
+                        <span class="text-[6px] font-medium absolute -left-1 -top-1">@ch.Index</span>
+                        <div class="size-8 rounded-full border flex items-center justify-center cursor-pointer transition text-gray-950 border-gray-300 dark:border-gray-700 shadow-[1px_2px_#00000021_inset]
+                         @(isActive ? "border-primary-500 ring-2 ring-primary-500/50" : "")"
+                             style="background-color:@(ch.Color.Match(c => c.HexOpaque, () => "#cbcbcb"))"
+                             @onclick="() => SelectInput(ch)">
+                            @ch.Icon.Render(icon => @<i class="@icon.ToString() fal text-base"></i>)
+                            
+                        </div>
                     </div>
                 }
             </div>
 
             <!-- OUTPUTS -->
-            <div class="flex gap-1 mt-4 justify-center">
-                @foreach (var bus in Outputs)
+            <div class="grid grid-cols-8 gap-1.5 mt-3 justify-center">
+                @foreach (var bus in Model.Busses)
                 {
                     var isActive = SelectedOutput?.Index == bus.Index;
 
-                    <div class="
-                        size-8 rounded-tl-lg rounded-tr-4xl rounded-b-4xl border flex items-center justify-center cursor-pointer transition text-gray-900
-                        border-gray-300 dark:border-gray-600 shadow-[1px_2px_#00000021_inset]
-                        @(isActive ? "border-primary ring-2 ring-primary/50" : "")
-                    "
-                         style="background-color:@bus.Color.HexOpaque"
-                         @onclick="() => SelectOutput(bus.Index)">
-                        @bus.Short
+                    <div class="relative">
+                        <div class="size-8 rounded-tl-lg rounded-tr-4xl rounded-b-4xl border flex items-center justify-center cursor-pointer transition text-gray-900
+                            border-gray-300 dark:border-gray-600 shadow-[1px_2px_#00000021_inset]
+                            @(isActive ? "border-primary-500 ring-2 ring-primary-500/50" : "")"
+                             style="background-color:@bus.Color.HexOpaque"
+                             @onclick="() => SelectOutput(bus.Index)">
+                            <i class="fal fa-headphones text-xs"></i>
+                        </div>
+                        <div class="absolute text-[6px] text-gray-500 mt-0.5 w-full text-center">@bus.Name</div>
                     </div>
                 }
 
-                <div class="size-8 rounded-full bg-[#cbcbcb] dark:bg-gray-600"></div>
-                <div class="size-8 rounded-full bg-[#cbcbcb] dark:bg-gray-600"></div>
+                <div class="flex items-center justify-center">
+                    <div class="size-6 rounded-full bg-gray-300 dark:bg-gray-600 relative">
+                        <div class="size-3 rounded-full bg-gray-600 dark:bg-gray-700 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"> </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center">
+                    <div class="relative size-6 rounded-full bg-gray-600 rotate-90">
+                      <div class="absolute left-1/2 top-1/2 w-0.5 h-3 bg-white rounded-sm -translate-x-1/2">
+                      </div>
+                    </div>
+                </div>
 
             </div>
         </div>
@@ -159,7 +170,7 @@
                             <div class="
                                 w-8 h-8 rounded-full flex items-center justify-center transition border
                                 border-gray-200 dark:border-gray-600
-                                @(isSelected ? "border-primary ring-2 ring-primary/50" : "")
+                                @(isSelected ? "border-primary-500 ring-2 ring-primary-500/50" : "")
                                 dark:ring-offset-gray-900
                             "
                                  style="background-color:@c.HexOpaque">
@@ -242,16 +253,6 @@
     private string NameValue = "";
     private bool IconDropdownOpen = false;
     
-    private List<(int Index, string Short, Color Color)> Outputs => new()
-    {
-        (1, "B1", Color.Red),
-        (2, "B2", Color.Green),
-        (3, "B3", Color.Yellow),
-        (4, "B4", Color.Blue),
-        (11, "L", Color.Magenta),
-        (12, "R", Color.White)
-    };
-
     void ToggleIconDropdown() => IconDropdownOpen = !IconDropdownOpen;
     void CloseIconDropdown() => IconDropdownOpen = false;
 
@@ -286,19 +287,18 @@
     }
 
 
-    void SelectOutput(int bus)
+    void SelectOutput(int busIndex)
     {
         SelectedInput = null;
 
-        var def = Outputs.First(x => x.Index == bus);
-        var busModel = Model.Busses.FirstOrDefault(b => b.Index == bus);
+        var busModel = Model.Busses.FirstOrDefault(b => b.Index == busIndex);
 
         SelectedOutput = new SocketInfo
         {
-            Index = bus,
-            Name = busModel?.Name ?? def.Short,
-            Color = def.Color,
-            ShortLabel = def.Short
+            Index = busIndex,
+            Name = busModel?.Name ?? "",
+            Color = busModel?.Color,
+            ShortLabel = $"B{busIndex}"
         };
     }
 

@@ -4,7 +4,7 @@
 @inject Mixer Mixer
 @inject MixerModel Model
 
-<div class="h-screen flex flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-300">
+<div class="h-screen flex flex-col bg-gray-50 dark:bg-primary-950 text-gray-700 dark:text-gray-300">
 
     @if (Mixer.State.IsConnected && !Model.IsInitialized)
     {
@@ -45,9 +45,9 @@
 
     @if (Mixer.State.IsConnected && Model.IsInitialized)
     {
-        <nav class="flex justify-around items-center
-            bg-white text-gray-600 border-t border-t-gray-100 dark:border-t-gray-900
-            dark:bg-gray-900 dark:text-gray-300
+        <nav class="flex justify-around items-center 
+            bg-white text-gray-700 border-t border-gray-100 py-2 
+            dark:bg-gray-900 dark:text-gray-400
         ">
             <NavLink href="@Routes.InOut"
                   class="nav-link" ActiveClass="active"
